@@ -29,10 +29,10 @@ std::vector<MediaFile*> MediaLibrary::getMediaFiles(std::string albumName){
     return mediaFiles;
 }
 
-std::vector<Album> MediaLibrary::getAlbums() {
-    std::vector<Album> albums = {};
+std::vector<Album*> MediaLibrary::getAlbums() {
+    std::vector<Album*> albums = {};
     for (auto &album : this->mAlbumMap) {
-        albums.push_back(*album.second);
+        albums.push_back(album.second);
     }
     return albums;
 }

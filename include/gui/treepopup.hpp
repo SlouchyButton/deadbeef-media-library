@@ -5,6 +5,7 @@
 #include "treefilebrowser.hpp"
 #include "filebrowserfilter.hpp"
 #include "addressbox.hpp"
+#include "medialibrary.hpp"
 
 class TreePopup : public Gtk::Menu {
 public:
@@ -19,7 +20,7 @@ private:
      * Function arguments for addToPlaylist when forking thread
      */
     struct structAddToPlaylist {
-        std::vector<std::string> uris;
+        std::vector<Album*> albums;
         std::string address;
         bool replace;
     };
@@ -50,7 +51,7 @@ private:
      * @param address Every URI has to be constructed first, pass mAddressbox->getAddress().
      * @param replace Whether current playlist should be replaced.
      */
-    static void addToPlaylist(std::vector<std::string> uris, std::string address, bool replace);
+    static void addToPlaylist(std::vector<Album*> albums, std::string address, bool replace);
 
     /**
      * Calls addToPlaylist, make sure to pass structAddToPlaylist as argument.

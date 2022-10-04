@@ -109,15 +109,13 @@ void TreeFilebrowser::refreshThread() {
     pluginLog(DDB_LOG_LAYER_INFO, "Filling model");
     for (auto &entry : this->mMediaLibrary->getAlbums()) {
         Cache::Covers::CoverAlbum coverAlbum;
-        Glib::RefPtr<Gdk::Pixbuf> icon = coverAlbum.getIcon(&entry, this->mIconSize);
+        Glib::RefPtr<Gdk::Pixbuf> icon = coverAlbum.getIcon(entry, this->mIconSize);
         Gtk::TreeModel::iterator iter = append();
         Gtk::TreeRow row = *iter;
         row[mModelColumns.mColumnIcon] = icon;
-        row[mModelColumns.mColumnName] = Utils::escapeTooltip(entry.Name);
-        std::filesystem::path entryPath = entry.MediaFiles.front()->Path;
-        entryPath = entryPath.parent_path().string().erase(0, mTreeDirectory.string().size());
-        row[mModelColumns.mColumnURI] = entryPath;
-        row[mModelColumns.mColumnTooltip] = Utils::escapeTooltip(entry.Artist);
+        row[mModelColumns.mColumnName] = Utils::escapeTooltip(entry->Name);
+        row[mModelColumns.mColumnAlbumPointer] = entry;
+        row[mModelColumns.mColumnTooltip] = Utils::escapeTooltip(entry->Artist);
         row[mModelColumns.mColumnVisibility] = true;
     }
 
@@ -189,7 +187,7 @@ int TreeFilebrowser::fillEmptyRow(void* data) {
     auto row = *(self->append());
     Glib::RefPtr<Gdk::Pixbuf> emptyIcon;
     row[self->mModelColumns.mColumnIcon] = emptyIcon;
-    row[self->mModelColumns.mColumnURI] = "";
+    row[self->mModelColumns.mColumnAlbumPointer] = NULL;
     row[self->mModelColumns.mColumnVisibility] = true;
     if (self->mIsNeedleSet) {
         row[self->mModelColumns.mColumnName] = "(EMPTY)";

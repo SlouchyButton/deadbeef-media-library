@@ -34,7 +34,7 @@ bool FilebrowserFilter::filter_func(Gtk::TreeIter iter) {
         return false;
     }
 
-    return (this->mNeedle.empty() || boost::algorithm::contains(boost::to_lower_copy(iter->get_value(this->mTreeFilebrowser->mModelColumns.mColumnURI)), this->mNeedle));
+    return (this->mNeedle.empty() || boost::algorithm::contains(boost::to_lower_copy(iter->get_value(this->mTreeFilebrowser->mModelColumns.mColumnName)), this->mNeedle));
 }
 
 FilebrowserFilter::~FilebrowserFilter() {
