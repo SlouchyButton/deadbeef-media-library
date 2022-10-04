@@ -43,34 +43,34 @@ void TreePopup::on_click(const Gtk::TreeModel::Path& path) {
     auto iter = mFilter->get_iter(path);
     const auto row = *iter;
     mDataHolder.address = mAddressbox->getAddress();
-    mDataHolder.uris = {row[mTreeFilebrowser->mModelColumns.mColumnURI]};
+    mDataHolder.albums = {row[mTreeFilebrowser->mModelColumns.mColumnAlbumPointer]};
     mDataHolder.replace = true;
     intptr_t tid = deadbeef->thread_start(TreePopup::threadedAddToPlaylist, static_cast<void*>(&mDataHolder));
     deadbeef->thread_detach(tid);
 }
 
 void TreePopup::popup_add() {
-    mDataHolder.address = mAddressbox->getAddress();
+    /*mDataHolder.address = mAddressbox->getAddress();
     mDataHolder.uris = this->getSelectedURIs();
     mDataHolder.replace = false;
     intptr_t tid = deadbeef->thread_start(TreePopup::threadedAddToPlaylist, static_cast<void*>(&mDataHolder));
-    deadbeef->thread_detach(tid);
+    deadbeef->thread_detach(tid);*/
 }
 
 void TreePopup::popup_replace() {
-    mDataHolder.address = mAddressbox->getAddress();
+    /*mDataHolder.address = mAddressbox->getAddress();
     mDataHolder.uris = this->getSelectedURIs();
     mDataHolder.replace = true;
     intptr_t tid = deadbeef->thread_start(TreePopup::threadedAddToPlaylist, static_cast<void*>(&mDataHolder));
-    deadbeef->thread_detach(tid);
+    deadbeef->thread_detach(tid);*/
 }
 
 void TreePopup::threadedAddToPlaylist(void* ctx) {
     auto holder = (TreePopup::structAddToPlaylist*)(ctx);
-    TreePopup::addToPlaylist(holder->uris, holder->address, holder->replace);
+    TreePopup::addToPlaylist(holder->albums, holder->address, holder->replace);
 }
 
-void TreePopup::addToPlaylist(std::vector<std::string> uris, std::string address, bool replace) {
+void TreePopup::addToPlaylist(std::vector<Album*> albums, std::string address, bool replace) {
     ddb_playlist_t* plt = deadbeef->plt_get_curr();
 
     if (replace) {
@@ -78,15 +78,13 @@ void TreePopup::addToPlaylist(std::vector<std::string> uris, std::string address
         deadbeef->plt_delete_selected(plt);
     }
 
-    for (auto &uri : uris) {
-        std::string realURI = address + uri;
+    for (auto &album : albums) {
 
         deadbeef->plt_add_files_begin(plt, 0);
 
-        if (std::filesystem::is_directory(realURI)) {
-            deadbeef->plt_add_dir2(0, plt, realURI.c_str(), NULL, NULL);
-        } else {
-            deadbeef->plt_add_file2(0, plt, realURI.c_str(), NULL, NULL);
+        
+        for (auto &file : album->MediaFiles) {
+            deadbeef->plt_add_file2(0, plt, file->Path.c_str(), NULL, NULL);
         }
 
         deadbeef->plt_add_files_end(plt, 0);

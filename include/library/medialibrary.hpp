@@ -23,7 +23,7 @@ public:
 
     std::vector<MediaFile*> getMediaFiles();
     std::vector<MediaFile*> getMediaFiles(std::string albumName);
-    std::vector<Album> getAlbums();
+    std::vector<Album*> getAlbums();
 
     std::string getStats();
 
