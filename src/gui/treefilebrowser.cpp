@@ -113,7 +113,7 @@ void TreeFilebrowser::refreshThread() {
         Gtk::TreeModel::iterator iter = append();
         Gtk::TreeRow row = *iter;
         row[mModelColumns.mColumnIcon] = icon;
-        row[mModelColumns.mColumnName] = Utils::escapeTooltip(entry->Name);
+        row[mModelColumns.mColumnName] = entry->Name;
         row[mModelColumns.mColumnAlbumPointer] = entry;
         row[mModelColumns.mColumnTooltip] = Utils::escapeTooltip(entry->Artist);
         row[mModelColumns.mColumnVisibility] = true;
@@ -121,10 +121,18 @@ void TreeFilebrowser::refreshThread() {
 
     //save mMediaLibrary to binary file
     pluginLog(DDB_LOG_LAYER_INFO, "Saving library to file");
-    std::ofstream ofs(libraryPath);
-    boost::archive::text_oarchive oa(ofs);
-    oa << mMediaLibrary;
-    pluginLog(DDB_LOG_LAYER_INFO, "Library saved");
+    if (!std::filesystem::exists(libraryPath)) {
+        std::filesystem::create_directories(libraryPath);
+    }
+    try {
+        std::ofstream ofs(libraryPath);
+        boost::archive::text_oarchive oa(ofs);
+        oa << mMediaLibrary;
+        pluginLog(DDB_LOG_LAYER_INFO, "Library saved");
+    } catch (const boost::archive::archive_exception &e) {
+        std::string err = e.what();
+        pluginLog(DDB_LOG_LAYER_INFO, "Error saving library to file " + libraryPath + " with error: " + err);
+    }
 
     //mTreeView->set_model(this);
     refreshLock = false;
@@ -137,9 +145,11 @@ void TreeFilebrowser::refreshThread() {
 }
 
 void TreeFilebrowser::findChildren(std::filesystem::path path) {
-    auto filelist = Filebrowser::getFileList(path, true, false);
+    std::cout << "Finding children for " << path << std::endl;
+    auto filelist = Filebrowser::getFileList(path, false, false);
     std::size_t count = filelist.size();
     //progressCount += count;
+    std::cout << "found children " << count << std::endl;
     if (count > 0) {
         for (auto &entry : filelist) {
             if (!mRefreshThreadRun.load()) {
@@ -150,6 +160,7 @@ void TreeFilebrowser::findChildren(std::filesystem::path path) {
             if (entry.is_directory() && !std::filesystem::is_empty(entry)) {
                 this->findChildren(entry.path());
             } else {
+                std::cout << "Adding media file " << entry.path().string() << std::endl;
                 this->mMediaLibrary->addMediaFile(entry.path());
                 this->libraryStats = this->mMediaLibrary->getStats();
                 mAddressbox->notify();
