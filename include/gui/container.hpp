@@ -23,7 +23,7 @@ private:
     Gtk::ScrolledWindow mScrolledWindow;
     Glib::RefPtr<TreeFilebrowser> mTreeFilebrowser;
     Glib::RefPtr<FilebrowserFilter> mFilebrowserFilter;
-    Gtk::CellRendererText mTextRenderer;
+    std::map<std::string, Gtk::CellRendererText> mTextRenderers;
 
     void buildTreeview();
 };
