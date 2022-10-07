@@ -12,7 +12,7 @@ CoverMediaFile::CoverMediaFile() {
 }
 
 Glib::RefPtr<Gdk::Pixbuf> CoverMediaFile::getIcon(MediaFile* mediaFile, uint size) {
-    Glib::RefPtr<Gdk::Pixbuf> icon;
+    /*Glib::RefPtr<Gdk::Pixbuf> icon;
     static Glib::RefPtr<Gdk::Pixbuf> lastIcon;
     static std::string lastDirectory;
 
@@ -35,7 +35,7 @@ Glib::RefPtr<Gdk::Pixbuf> CoverMediaFile::getIcon(MediaFile* mediaFile, uint siz
         }
         status = useCache;
     }
-    return icon;
+    return icon;*/
 }
 
 bool CoverMediaFile::lastIconFound() {

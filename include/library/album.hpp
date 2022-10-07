@@ -2,6 +2,7 @@
 
 #include <gtkmm.h>
 #include "mediafile.hpp"
+#include "coverimage.hpp"
 
 //class MediaFile;
 
@@ -15,13 +16,12 @@ public:
     std::string Genre;
     std::string Year;
     std::string Length;
-    Glib::RefPtr<Gdk::Pixbuf> CoverPixbuf;
-    bool coverFound;
+    CoverImage* Cover;
     std::vector<MediaFile*> MediaFiles;
     
     template<class Archive>
     void serialize(Archive &a, const unsigned version){
-        a & Name & Artist & Genre & Year & Length & MediaFiles;
+        a & Name & Artist & Genre & Year & Length & MediaFiles & Cover;
     }
 private:
 };

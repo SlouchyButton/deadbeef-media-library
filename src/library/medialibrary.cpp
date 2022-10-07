@@ -10,6 +10,7 @@
 #include "coveralbum.hpp"
 #include "plugin.hpp"
 #include "settings.hpp"
+#include <chrono>
 
 MediaLibrary::MediaLibrary() {
     //Maybe do some initialization here, like loading from saved file
@@ -47,7 +48,7 @@ void MediaLibrary::addMediaFile(MediaFile* mediaFile) {
 }
 
 void MediaLibrary::addMediaFile(std::filesystem::path path) {
-    if (this->mMediaFilesMap.find(path) == this->mMediaFilesMap.end()) {
+    if (this->mMediaFilesMap.find(path) == this->mMediaFilesMap.end() && path.has_extension()) {
         MediaFile* mediaFile = new MediaFile(path);
         this->mMediaFiles.push_back(mediaFile);
         this->mMediaFilesMap[path] = mediaFile;
@@ -66,32 +67,37 @@ void MediaLibrary::addAlbum(MediaFile* mediaFile) {
         album->Year = mediaFile->Year;
         album->Length = mediaFile->Length;
         album->MediaFiles.push_back(mediaFile);
-        this->mAlbumMap[albumName] = album;
 
-    
-        Cache::Covers::CoverAlbum coverAlbum;
-        album->CoverPixbuf = coverAlbum.getIcon(album, deadbeef->conf_get_int(ML_ICON_SIZE, 32));
-        album->coverFound = coverAlbum.lastIconFound();
+        album->Cover = new CoverImage(mediaFile->Cover->data, deadbeef->conf_get_int(ML_ICON_SIZE, 32));
+
+        this->mAlbumMap[albumName] = album;
 
         mAlbumCount++;
     } else {
         this->mAlbumMap[albumName]->Length += mediaFile->Length;
         this->mAlbumMap[albumName]->MediaFiles.push_back(mediaFile);
+
+        if (this->mAlbumMap[albumName]->Artist != mediaFile->Artist) {
+            this->mAlbumMap[albumName]->Artist = "VA";
+        }
     }
 }
 
 void MediaLibrary::loadCovers() {
+    int size = deadbeef->conf_get_int(ML_ICON_SIZE, 128);
     Cache::Covers::CoverMediaFile coverMediaFile;
     Cache::Covers::CoverAlbum coverAlbum;
+    auto start = std::chrono::high_resolution_clock::now();
     for (auto mediaFile : this->mMediaFiles) {
-        mediaFile->CoverPixbuf = coverMediaFile.getIcon(mediaFile, deadbeef->conf_get_int(ML_ICON_SIZE, 32));
-        mediaFile->coverFound = coverMediaFile.lastIconFound();
+        mediaFile->Cover->regeneratePixbuf(size);
 
     }
     for (auto album : this->mAlbumMap) {
-        album.second->CoverPixbuf = coverAlbum.getIcon(album.second, deadbeef->conf_get_int(ML_ICON_SIZE, 32));
-        album.second->coverFound = coverAlbum.lastIconFound();
+        album.second->Cover->regeneratePixbuf(size);
     }
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    std::cout << "Covers loaded (" << duration.count() << " microseconds)" << std::endl;
 }
 
 std::string MediaLibrary::getStats() {

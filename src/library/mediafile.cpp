@@ -7,6 +7,7 @@
 #include "plugin.hpp"
 #include "settings.hpp"
 #include "covermediafile.hpp"
+#include "readerfactory.hpp"
 
 MediaFile::MediaFile(std::filesystem::path path) {
     TagLib::FileRef f(path.c_str());
@@ -39,10 +40,7 @@ MediaFile::MediaFile(std::filesystem::path path) {
     }
 
     this->Path = path;
-    
-    Cache::Covers::CoverMediaFile coverMediaFile;
-    this->CoverPixbuf = coverMediaFile.getIcon(this, deadbeef->conf_get_int(ML_ICON_SIZE, 32));
-    this->coverFound = coverMediaFile.lastIconFound();
+    this->Cover = new CoverImage(path, deadbeef->conf_get_int(ML_ICON_SIZE, 32));
 }
 
 MediaFile::MediaFile() {

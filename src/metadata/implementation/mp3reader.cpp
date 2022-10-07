@@ -22,5 +22,21 @@ Glib::RefPtr<Gdk::Pixbuf> MP3Reader::getImage(std::filesystem::path path, int si
     return image;
 }
 
+TagLib::ByteVector* MP3Reader::getData(std::filesystem::path path) {
+    TagLib::MPEG::File file(path.c_str());
+
+    TagLib::ByteVector* data = nullptr;
+    if (file.isValid()) {
+        if (file.hasID3v2Tag()) {
+            TagLib::ID3v2::Tag* tag = file.ID3v2Tag();
+            data = this->getDataFromTag(tag);
+            if (data) {
+                return data;
+            }
+        }
+    }
+    return data;
+}
+
 MP3Reader::~MP3Reader() {
 }

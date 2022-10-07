@@ -10,6 +10,7 @@ public:
     virtual ~Reader();
 
     virtual Glib::RefPtr<Gdk::Pixbuf> getImage(std::filesystem::path path, int size) = 0;
+    virtual TagLib::ByteVector* getData(std::filesystem::path path) = 0;
 protected:
     Glib::RefPtr<Gdk::Pixbuf> getImageFromData(TagLib::ByteVector bytes, int size);
 };

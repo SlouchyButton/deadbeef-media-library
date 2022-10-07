@@ -6,8 +6,11 @@ DB_functions_t* deadbeef = NULL;
 static DB_misc_t plugin;
 
 const char config_dialog[] =
+"property \"Replace playlist\" checkbox " ML_DOUBLECLICK_REPLACE " 1;\n"
+"property \"Full library reimport needed for following settings\" label REIMPORTWARN;\n"
 "property \"Icon size\" entry " ML_ICON_SIZE " 128;\n"
-"property \"Replace playlist\" checkbox " ML_DOUBLECLICK_REPLACE " 1;\n";
+"property \"Icon quality\" select[4] " ML_ICON_QUALITY " 2 Highest High Medium Low;\n"
+"property \"Highest quality increases memory usage, but has best load time.\nMemory consumption improvement has diminishing returns for qualities lower than Medium.\" label ICONNOTES;\n";
 
 extern "C" 
 DB_plugin_t* ddb_misc_media_library_load(DB_functions_t* api) {
@@ -33,5 +36,5 @@ DB_plugin_t* ddb_misc_media_library_load(DB_functions_t* api) {
 
 void pluginLog(int level, std::string message) {
     std::string logMessage = "Media Library: " + message + "\n";
-    deadbeef->log_detailed (&plugin.plugin, level, message.c_str());
+    deadbeef->log_detailed (&plugin.plugin, level, (message + "\n").c_str());
 }

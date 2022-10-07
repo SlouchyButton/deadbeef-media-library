@@ -9,4 +9,5 @@ public:
     virtual ~ID3v2Reader();
 protected:
     Glib::RefPtr<Gdk::Pixbuf> getImageFromTag(TagLib::ID3v2::Tag* tag, int size);
+    TagLib::ByteVector* getDataFromTag(TagLib::ID3v2::Tag* tag);
 };
