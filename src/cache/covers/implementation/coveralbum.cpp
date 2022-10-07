@@ -12,7 +12,7 @@ CoverAlbum::CoverAlbum() {
 }
 
 Glib::RefPtr<Gdk::Pixbuf> CoverAlbum::getIcon(Album* album, uint size) {
-    Glib::RefPtr<Gdk::Pixbuf> icon;
+    /*Glib::RefPtr<Gdk::Pixbuf> icon;
     static Glib::RefPtr<Gdk::Pixbuf> lastIcon;
     static std::string lastDirectory;
     
@@ -22,7 +22,7 @@ Glib::RefPtr<Gdk::Pixbuf> CoverAlbum::getIcon(Album* album, uint size) {
     }
     
     status = false;
-    return Utils::getIconByName("media-default-album", size);
+    return Utils::getIconByName("media-default-album", size);*/
 }
 
 bool CoverAlbum::lastIconFound() {

@@ -5,6 +5,7 @@
 
 #include "mediafile.hpp"
 #include "album.hpp"
+#include "coverimage.hpp"
 
 #include <fstream>
 #include <boost/archive/text_iarchive.hpp>

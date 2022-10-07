@@ -5,6 +5,8 @@
 
 #include <iostream>
 
+#include "coverimage.hpp"
+
 class MediaFile {
 public:
     MediaFile(std::filesystem::path path);
@@ -19,15 +21,14 @@ public:
     std::string Year;
     std::string Length;
     std::string FileFormat;
-    Glib::RefPtr<Gdk::Pixbuf> CoverPixbuf;
-    bool coverFound;
+    CoverImage* Cover;
     std::hash<std::string> hash;
     
     std::map<std::string, std::string> MetaData;
 
     template<class Archive>
     void serialize(Archive &a, const unsigned version){
-        a & Path & Title & Artist & Album & Genre & Year & Length & FileFormat & MetaData;
+        a & Path & Title & Artist & Album & Genre & Year & Length & FileFormat & MetaData & Cover;
     }
 
 private:

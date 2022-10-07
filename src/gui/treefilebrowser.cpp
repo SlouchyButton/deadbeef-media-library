@@ -11,6 +11,8 @@
 #include <fstream>
 
 //include for object save and archive
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
 
 
 TreeFilebrowser::TreeFilebrowser() {
@@ -61,17 +63,18 @@ void TreeFilebrowser::refreshThread() {
 
     //load mMediaLibrary from file
     std::cout << "Checking whether library is saved" << std::endl;
-    std::string libraryPath = deadbeef->get_system_dir(DDB_SYS_DIR_CACHE);
-    libraryPath += "/media-library/library.dat";
+    std::string dbLibraryPath = deadbeef->get_system_dir(DDB_SYS_DIR_CACHE);
+    dbLibraryPath += "/media-library/library.bin";
+    std::filesystem::path libraryPath = dbLibraryPath;
     if (std::filesystem::exists(libraryPath) && !forceRefresh) {
-        std::cout << "Library is saved, loading" << std::endl;
-        std::ifstream ifs(libraryPath);
-        boost::archive::text_iarchive ia(ifs);
+        pluginLog(DDB_LOG_LAYER_INFO, "Library is saved, loading");
+        std::ifstream ifs(libraryPath, std::ios::binary);
+        boost::archive::binary_iarchive ia(ifs);
         ia >> mMediaLibrary;
-        std::cout << "Library loaded, loading covers" << std::endl;
+        pluginLog(DDB_LOG_LAYER_INFO, "Library loaded, loading covers");
         mMediaLibrary->loadCovers();
     } else {
-        std::cout << "Library is not saved, creating new" << std::endl;
+        pluginLog(DDB_LOG_LAYER_INFO, "Library is not saved, creating new");
         pluginLog(DDB_LOG_LAYER_INFO, "Loading tree structure");
         auto filelist = Filebrowser::getFileList(mTreeDirectory, true, false);
         std::size_t count = filelist.size();
@@ -102,36 +105,33 @@ void TreeFilebrowser::refreshThread() {
         } else {
             TreeFilebrowser::fillEmptyRow(this);
         }
-        std::cout << "Library created" << std::endl;
+        pluginLog(DDB_LOG_LAYER_INFO, "Library created");
+        //save mMediaLibrary to binary file
+        pluginLog(DDB_LOG_LAYER_INFO, "Saving library to file");
+        if (!std::filesystem::exists(libraryPath.parent_path())) {
+            std::filesystem::create_directories(libraryPath.parent_path());
+        }
+        try {
+            std::ofstream ofs(libraryPath, std::ios::binary);
+            boost::archive::binary_oarchive oa(ofs);
+            oa << mMediaLibrary;
+            pluginLog(DDB_LOG_LAYER_INFO, "Library saved");
+        } catch (const boost::archive::archive_exception &e) {
+            std::string err = e.what();
+            pluginLog(DDB_LOG_LAYER_INFO, "Error saving library to file " + libraryPath.string() + " with error: " + err);
+        }
     }
 
     pluginLog(DDB_LOG_LAYER_INFO, "Library loaded");
     pluginLog(DDB_LOG_LAYER_INFO, "Filling model");
     for (auto &entry : this->mMediaLibrary->getAlbums()) {
-        Cache::Covers::CoverAlbum coverAlbum;
-        Glib::RefPtr<Gdk::Pixbuf> icon = coverAlbum.getIcon(entry, this->mIconSize);
         Gtk::TreeModel::iterator iter = append();
         Gtk::TreeRow row = *iter;
-        row[mModelColumns.mColumnIcon] = icon;
+        row[mModelColumns.mColumnIcon] = entry->Cover->CoverPixbuf;
         row[mModelColumns.mColumnName] = entry->Name;
         row[mModelColumns.mColumnAlbumPointer] = entry;
         row[mModelColumns.mColumnTooltip] = Utils::escapeTooltip(entry->Artist);
         row[mModelColumns.mColumnVisibility] = true;
-    }
-
-    //save mMediaLibrary to binary file
-    pluginLog(DDB_LOG_LAYER_INFO, "Saving library to file");
-    if (!std::filesystem::exists(libraryPath)) {
-        std::filesystem::create_directories(libraryPath);
-    }
-    try {
-        std::ofstream ofs(libraryPath);
-        boost::archive::text_oarchive oa(ofs);
-        oa << mMediaLibrary;
-        pluginLog(DDB_LOG_LAYER_INFO, "Library saved");
-    } catch (const boost::archive::archive_exception &e) {
-        std::string err = e.what();
-        pluginLog(DDB_LOG_LAYER_INFO, "Error saving library to file " + libraryPath + " with error: " + err);
     }
 
     //mTreeView->set_model(this);
@@ -145,11 +145,9 @@ void TreeFilebrowser::refreshThread() {
 }
 
 void TreeFilebrowser::findChildren(std::filesystem::path path) {
-    std::cout << "Finding children for " << path << std::endl;
     auto filelist = Filebrowser::getFileList(path, false, false);
     std::size_t count = filelist.size();
     //progressCount += count;
-    std::cout << "found children " << count << std::endl;
     if (count > 0) {
         for (auto &entry : filelist) {
             if (!mRefreshThreadRun.load()) {
@@ -160,7 +158,6 @@ void TreeFilebrowser::findChildren(std::filesystem::path path) {
             if (entry.is_directory() && !std::filesystem::is_empty(entry)) {
                 this->findChildren(entry.path());
             } else {
-                std::cout << "Adding media file " << entry.path().string() << std::endl;
                 this->mMediaLibrary->addMediaFile(entry.path());
                 this->libraryStats = this->mMediaLibrary->getStats();
                 mAddressbox->notify();

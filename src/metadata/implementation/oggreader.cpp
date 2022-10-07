@@ -26,5 +26,24 @@ Glib::RefPtr<Gdk::Pixbuf> OggReader::getImage(std::filesystem::path path, int si
     return image;
 }
 
+TagLib::ByteVector* OggReader::getData(std::filesystem::path path) {
+    TagLib::Ogg::Vorbis::File file(path.c_str());
+
+    TagLib::ByteVector* data = new TagLib::ByteVector();
+    if (file.isValid()) {
+        if (file.tag()) {
+            TagLib::Ogg::XiphComment* tag = file.tag();
+            TagLib::List<TagLib::FLAC::Picture*> pictureList = tag->pictureList();
+            for (const auto &picture : pictureList) {
+                *data = picture->data();
+                if (data->size()) {
+                    return data;
+                }
+            }
+        }
+    }
+    return nullptr;
+}
+
 OggReader::~OggReader() {
 }

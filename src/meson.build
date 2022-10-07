@@ -28,6 +28,7 @@ source_files = files(
     'library/album.cpp',
     'library/mediafile.cpp',
     'library/medialibrary.cpp',
+    'library/coverimage.cpp',
     'plugin/controller.cpp',
     'metadata/readerfactory.cpp',
     'metadata/reader.cpp',

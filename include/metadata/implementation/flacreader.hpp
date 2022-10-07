@@ -8,5 +8,6 @@ public:
     ~FlacReader();
 
     Glib::RefPtr<Gdk::Pixbuf> getImage(std::filesystem::path path, int size) override;
+    TagLib::ByteVector* getData(std::filesystem::path path) override;
 private:
 };
