@@ -28,22 +28,23 @@ TreePopup::TreePopup() {
     this->bind_model(mMenu, true);
 }
 
-void TreePopup::initialize(Gtk::IconView* treeview, TreeFilebrowser* treefb, FilebrowserFilter* filter, Addressbox* addressbox) {
-    this->mIconView = treeview;
-    this->mTreeFilebrowser = treefb;
-    this->mFilter = filter;
+void TreePopup::initialize(Gtk::IconView* iconView, Glib::RefPtr<Gtk::ListStore> model, Addressbox* addressbox /*TreeFilebrowser* treefb, FilebrowserFilter* filter*/) {
+    this->mIconView = iconView;
+    //this->mTreeFilebrowser = treefb;
+    //this->mFilter = filter;
+    this->mModel = model;
     this->mAddressbox = addressbox;
 
-    treeview->signal_item_activated().connect(sigc::mem_fun(*this, &TreePopup::on_click), false);
+    this->mIconView->signal_item_activated().connect(sigc::mem_fun(*this, &TreePopup::on_click), false);
 
     this->show_all();
 }
 
 void TreePopup::on_click(const Gtk::TreeModel::Path& path) {
-    auto iter = mFilter->get_iter(path);
+    auto iter = this->mModel->get_iter(path);
     const auto row = *iter;
     mDataHolder.address = mAddressbox->getAddress();
-    mDataHolder.albums = {row[mTreeFilebrowser->mModelColumns.mColumnAlbumPointer]};
+    mDataHolder.albums = {row[mModelColumns.mColumnAlbumPointer]};
     mDataHolder.replace = true;
     intptr_t tid = deadbeef->thread_start(TreePopup::threadedAddToPlaylist, static_cast<void*>(&mDataHolder));
     deadbeef->thread_detach(tid);
@@ -103,31 +104,31 @@ void TreePopup::addToPlaylist(std::vector<Album*> albums, std::string address, b
 }
 
 void TreePopup::popup_open_folder() {
-    if (hasSelected()) {
+    /*if (hasSelected()) {
         GError *error = NULL;
         auto URI = "file:///" + mAddressbox->getAddress() + this->getSelectedURI();
         if (!g_app_info_launch_default_for_uri(URI.c_str(), NULL, &error)) {
             g_warning("Failed to oepn uri: %s", error->message);
         }
-    }
+    }*/
 }
 
 void TreePopup::popup_enter_directory() {
-    if (hasSelected()) {
+    /*if (hasSelected()) {
         auto URI = mAddressbox->getAddress() + this->getSelectedURI();
         mAddressbox->setAddress(URI);
-    }
+    }*/
 }
 
 void TreePopup::popup_go_up() {
-    auto URI = std::filesystem::path(mAddressbox->getAddress());
+    /*auto URI = std::filesystem::path(mAddressbox->getAddress());
     if (URI.has_parent_path()) {
         mAddressbox->setAddress(URI.parent_path());
-    }
+    }*/
 }
 
 void TreePopup::popup_refresh() {
-    mTreeFilebrowser->refreshTree();
+    //mTreeFilebrowser->refreshTree();
 }
 
 std::string TreePopup::getSelectedURI() {

@@ -15,11 +15,10 @@ source_files = files(
     'plugin.cpp',
     'filebrowser.cpp',
     'utils.cpp',
-    'cache/covers/cover.cpp',
-    'cache/covers/implementation/coveralbum.cpp',
-    'cache/covers/implementation/covermediafile.cpp',
+    'librarycontroller.cpp',
     'gui/modelcolumns.cpp',
     'gui/container.cpp',
+    'gui/iconview.cpp',
     'gui/treefilebrowser.cpp',
     'gui/searchbar.cpp',
     'gui/filebrowserfilter.cpp',
@@ -41,9 +40,6 @@ source_files = files(
 
 includes = [
     include_directories('../include'),
-    include_directories('../include/cache'),
-    include_directories('../include/cache/covers'),
-    include_directories('../include/cache/covers/implementation'),
     include_directories('../include/gui'),
     include_directories('../include/library'),
     include_directories('../include/metadata'),

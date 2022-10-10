@@ -8,22 +8,34 @@
 #include "filebrowserfilter.hpp"
 #include "treepopup.hpp"
 #include "medialibrary.hpp"
+#include "modelcolumns.hpp"
+#include "librarycontroller.hpp"
+#include "iconview.hpp"
 
 class Container : public Gtk::VBox {
 public:
+    ModelColumns mModelColumns;
+
     Container();
     ~Container();
+
     void initialize();
+
+    void notify();
 private:
     Searchbar mSearchbar;
-    Addressbox mAddressbox;
     MediaLibrary mMediaLibrary;
-    Gtk::IconView mIconView;
+    LibraryController mLibraryController;
+    IconView mIconView;
+    Glib::RefPtr<Gtk::ListStore> mListStore;
     TreePopup mTreePopup;
+    Addressbox mAddressbox;
     Gtk::ScrolledWindow mScrolledWindow;
     Glib::RefPtr<TreeFilebrowser> mTreeFilebrowser;
     Glib::RefPtr<FilebrowserFilter> mFilebrowserFilter;
-    std::map<std::string, Gtk::CellRendererText> mTextRenderers;
+    Glib::Dispatcher mDispatcher;
 
     void buildTreeview();
+
+    void onNotify();
 };

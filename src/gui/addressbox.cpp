@@ -14,64 +14,46 @@ mGoButton() {
     this->mGoButton.set_margin_left(1);
     this->mGoButton.set_margin_right(1);
     this->mGoButton.set_image(*Gtk::manage(new Gtk::Image(Utils::getIconByName("go-next", 16))));
+
     this->pack_start(this->mAddressBar, true, true);
     this->pack_start(this->mGoButton, false, true);
     this->pack_start(this->mProgressLabel, true, true);
-
-    // Connect the handler to the dispatcher.
-    mDispatcher.connect(sigc::mem_fun(*this, &Addressbox::onNotify));
 }
 
-void Addressbox::initialize(Gtk::IconView *treeview, Glib::RefPtr<FilebrowserFilter> filter) {
-    this->mIconView = treeview;
-    this->mFilebrowserFilter = filter;
-}
+void Addressbox::initialize(MediaLibrary* mediaLibrary, LibraryController* libraryController) {
+    this->mMediaLibrary = mediaLibrary;
+    this->mLibraryController = libraryController;
 
-void Addressbox::setTreeFilebrowser(TreeFilebrowser* newTreeFilebrowser) {
-    this->mTreeFilebrowser = newTreeFilebrowser;
+    std::string defaultDir = Glib::get_user_special_dir(Glib::UserDirectory::USER_DIRECTORY_MUSIC);
+    deadbeef->conf_lock();
+    auto address = deadbeef->conf_get_str_fast(ML_DEFAULT_PATH, defaultDir.c_str());
+    deadbeef->conf_unlock();
+    this->setAddress(address);
 }
 
 void Addressbox::setAddress(std::string newAddress) {
     this->mAddressBar.set_text(newAddress);
-    this->on_go_button_click();
+    //this->on_go_button_click();
 }
 
-void Addressbox::updateProgress() {
-    float progress;
-    mTreeFilebrowser->getProgress(&progress);
-    if (progress == 1) {
-        pluginLog(DDB_LOG_LAYER_INFO, "Thread reported progress done");
-        inProgress = false;
-        if (inProgress == false && mTreeFilebrowser->status == false) {
-            pluginLog(DDB_LOG_LAYER_INFO, "Thread just finished, changing UI");
+void Addressbox::updateProgress(bool status, float progress, std::string stats) {
+    //pluginLog(2, "Addressbox - Updating progress" + std::to_string(progress) + " status: " + std::to_string(status) + " my status: " + std::to_string(this->mStatus) + " stats: " + stats);
+    if (status == false) {
+        if (this->mStatus == true) {
             this->mAddressBar.set_sensitive(true);
             this->mGoButton.set_image(*Gtk::manage(new Gtk::Image(Utils::getIconByName("go-next", 16))));
-            this->mAddressBar.set_progress_fraction(0);
-            this->mIconView->set_model(this->mFilebrowserFilter);
+            this->mStatus = false;
         }
+        this->mAddressBar.set_progress_fraction(0);
     } else {
-        if (inProgress == false) {
-            pluginLog(DDB_LOG_LAYER_INFO, "Thread just started running, changing buttons");
-            //this->mTreeView->unset_model();
+        if (this->mStatus == false) {
             this->mAddressBar.set_sensitive(false);
             this->mGoButton.set_image(*Gtk::manage(new Gtk::Image(Utils::getIconByName("process-stop", 16))));
-            inProgress = true;
+            this->mStatus = true;
         }
         this->mAddressBar.set_progress_fraction(progress);
-        this->mProgressLabel.set_text(mTreeFilebrowser->libraryStats);
     }
-}
-
-void Addressbox::setProgressBar(ProgressBarData* data) {
-    data->bar->set_progress_fraction(data->progress);
-}
-
-void Addressbox::notify() {
-    mDispatcher.emit();
-}
-
-void Addressbox::onNotify() {
-    this->updateProgress();
+    this->mProgressLabel.set_text(stats);
 }
 
 std::string Addressbox::getAddress() {
@@ -79,17 +61,21 @@ std::string Addressbox::getAddress() {
 }
 
 void Addressbox::on_go_button_click() {
-    if (inProgress) {
-        pluginLog(DDB_LOG_LAYER_INFO, "Still in progress");
-        this->mTreeFilebrowser->stopThread();
+    if (this->mStatus == true) {
+        pluginLog(2, "Addressbox - Import in progress, stopping on user request");
+        this->mLibraryController->stopImport();
         return;
-    }
-    this->mAddress = this->mAddressBar.get_text();
-    this->mAddress = this->makeValidPath(this->mAddress);
-    deadbeef->conf_set_str(ML_DEFAULT_PATH, this->mAddress.c_str());
-    this->mAddressBar.set_text(this->mAddress);
-    if (std::filesystem::exists(this->mAddress) && std::filesystem::is_directory(this->mAddress)) {
-        this->mTreeFilebrowser->setTreeRoot(this->mAddress);
+    } else {
+        pluginLog(2, "Addressbox - Saving path");
+        this->mAddress = this->mAddressBar.get_text();
+        this->mAddress = this->makeValidPath(this->mAddress);
+        deadbeef->conf_set_str(ML_DEFAULT_PATH, this->mAddress.c_str());
+        this->mAddressBar.set_text(this->mAddress);
+        if (std::filesystem::exists(this->mAddress) && std::filesystem::is_directory(this->mAddress)) {
+            this->mMediaLibrary->addSearchPath(this->mAddress);
+        }
+        pluginLog(2, "Addressbox - Starting import of " + this->mAddress);
+        this->mLibraryController->startImport();
     }
 }
 

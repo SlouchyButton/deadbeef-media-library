@@ -4,14 +4,15 @@
 
 #include "treefilebrowser.hpp"
 #include "filebrowserfilter.hpp"
+#include "medialibrary.hpp"
+#include "librarycontroller.hpp"
 
 class Addressbox : public Gtk::HBox
 {
 public:
     void setTreeFilebrowser(TreeFilebrowser* newTreeFilebrowser);
     void setAddress(std::string newAddres);
-    void updateProgress(float progress);
-    void initialize(Gtk::IconView* treeview, Glib::RefPtr<FilebrowserFilter>);
+    void initialize(MediaLibrary* mediaLibrary, LibraryController* libraryController);
     std::string getAddress();
 
     /**
@@ -23,8 +24,7 @@ public:
      */
     std::string makeValidPath(std::string path);
 
-    // Called from the worker thread.
-    void notify();
+    void updateProgress(bool status, float progress, std::string stats);
 
     Addressbox();
     ~Addressbox();
@@ -32,25 +32,14 @@ private:
     Gtk::Button mGoButton;
     Gtk::Label mProgressLabel;
     Gtk::Entry mAddressBar;
-    TreeFilebrowser* mTreeFilebrowser;
-    Gtk::IconView* mIconView;
-    Glib::RefPtr<FilebrowserFilter> mFilebrowserFilter;
     std::string mAddress;
-
-    bool inProgress = false;
-
-    Glib::Dispatcher mDispatcher;
-    void onNotify();
-    void updateProgress();
+    Gtk::IconView* mIconView;
+    MediaLibrary* mMediaLibrary;
+    LibraryController* mLibraryController;
+    bool mStatus = false;
 
     /**
      * Gets called when pressing Go! button
      */
     void on_go_button_click();
-
-    struct ProgressBarData {
-        Gtk::Entry* bar;
-        float progress;
-    };
-    static void setProgressBar(ProgressBarData* data);
 };

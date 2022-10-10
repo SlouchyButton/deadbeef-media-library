@@ -6,11 +6,8 @@
 #include <unistd.h>
 
 #include <iostream>
-#include "covermediafile.hpp"
-#include "coveralbum.hpp"
 #include "plugin.hpp"
 #include "settings.hpp"
-#include <chrono>
 
 MediaLibrary::MediaLibrary() {
     //Maybe do some initialization here, like loading from saved file
@@ -43,7 +40,7 @@ void MediaLibrary::addMediaFile(MediaFile* mediaFile) {
         this->mMediaFiles.push_back(mediaFile);
         this->mMediaFilesMap[mediaFile->Path] = mediaFile;
         this->addAlbum(mediaFile);
-        mMediaFileCount++;
+        this->mMediaFileCount++;
     }
 }
 
@@ -53,8 +50,25 @@ void MediaLibrary::addMediaFile(std::filesystem::path path) {
         this->mMediaFiles.push_back(mediaFile);
         this->mMediaFilesMap[path] = mediaFile;
         this->addAlbum(mediaFile);
-        mMediaFileCount++;
+        this->mMediaFileCount++;
     }
+}
+
+void MediaLibrary::addSearchPath(std::filesystem::path path) {
+    //Management not implemented yet, replace current search path
+    /*if (std::find(this->mPaths.begin(), this->mPaths.end(), path) == this->mPaths.end()) {
+        this->mPaths.push_back(path);
+    }*/
+    this->mPaths.clear();
+    this->mPaths.push_back(path);
+}
+
+std::vector<std::filesystem::path> MediaLibrary::getSearchPaths() {
+    std::vector<std::filesystem::path> paths;
+    for (auto &path : this->mPaths) {
+        paths.push_back(std::filesystem::path(path));
+    }
+    return paths;
 }
 
 void MediaLibrary::addAlbum(MediaFile* mediaFile) {
@@ -72,7 +86,7 @@ void MediaLibrary::addAlbum(MediaFile* mediaFile) {
 
         this->mAlbumMap[albumName] = album;
 
-        mAlbumCount++;
+        this->mAlbumCount++;
     } else {
         this->mAlbumMap[albumName]->Length += mediaFile->Length;
         this->mAlbumMap[albumName]->MediaFiles.push_back(mediaFile);
@@ -85,9 +99,6 @@ void MediaLibrary::addAlbum(MediaFile* mediaFile) {
 
 void MediaLibrary::loadCovers() {
     int size = deadbeef->conf_get_int(ML_ICON_SIZE, 128);
-    Cache::Covers::CoverMediaFile coverMediaFile;
-    Cache::Covers::CoverAlbum coverAlbum;
-    auto start = std::chrono::high_resolution_clock::now();
     for (auto mediaFile : this->mMediaFiles) {
         mediaFile->Cover->regeneratePixbuf(size);
 
@@ -95,13 +106,10 @@ void MediaLibrary::loadCovers() {
     for (auto album : this->mAlbumMap) {
         album.second->Cover->regeneratePixbuf(size);
     }
-    auto stop = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-    std::cout << "Covers loaded (" << duration.count() << " microseconds)" << std::endl;
 }
 
 std::string MediaLibrary::getStats() {
-    std::string stats = "Albums: " + std::to_string(mAlbumCount) + " MediaFiles: " + std::to_string(mMediaFileCount);
+    std::string stats = "Albums: " + std::to_string(this->mAlbumCount) + " MediaFiles: " + std::to_string(this->mMediaFileCount);
     return stats;
 }
 
