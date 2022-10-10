@@ -6,7 +6,6 @@
 #include "utils.hpp"
 #include "plugin.hpp"
 #include "settings.hpp"
-#include "covermediafile.hpp"
 #include "readerfactory.hpp"
 
 MediaFile::MediaFile(std::filesystem::path path) {

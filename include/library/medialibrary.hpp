@@ -30,18 +30,23 @@ public:
 
     void addMediaFile(MediaFile* mediaFile);
     void addMediaFile(std::filesystem::path path);
+
+    void addSearchPath(std::filesystem::path path);
+    std::vector<std::filesystem::path> getSearchPaths();
+
     void loadCovers();
 private:
     friend class boost::serialization::access;
     std::vector<MediaFile*> mMediaFiles;
     std::map<std::string, Album*> mAlbumMap;
     std::map<std::string, MediaFile*> mMediaFilesMap;
+    std::vector<std::string> mPaths;
     int mAlbumCount = 0;
     int mMediaFileCount = 0;
 
     template<class Archive>
     void serialize(Archive &a, const unsigned version){
-        a & mMediaFiles & mAlbumMap & mMediaFilesMap & mAlbumCount & mMediaFileCount;
+        a & mMediaFiles & mAlbumMap & mMediaFilesMap & mAlbumCount & mMediaFileCount & mPaths;
     }
     
     void addAlbum(MediaFile* mediaFile);

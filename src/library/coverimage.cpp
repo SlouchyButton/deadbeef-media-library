@@ -28,7 +28,7 @@ CoverImage::CoverImage(std::filesystem::path path, int pixBufSize) {
                 loader->close();
                 this->CoverPixbuf = loader->get_pixbuf();
             } catch (Gdk::PixbufError &e) {
-                pluginLog(DDB_LOG_LAYER_INFO, ("Error while loading cover from metadata: " + e.what()));
+                pluginLog(1, ("Couldn't load cover from metadata: " + e.what()));
             }
         }
         int quality = deadbeef->conf_get_int(ML_ICON_QUALITY, 2);
@@ -84,7 +84,7 @@ void CoverImage::regeneratePixbuf(int pixBufSize) {
             loader->close();
             this->CoverPixbuf = loader->get_pixbuf();
         } catch (Gdk::PixbufError &e) {
-            pluginLog(DDB_LOG_LAYER_INFO, ("Error while loading cover from metadata: " + e.what()));
+            pluginLog(1, ("Couldn't load cover from metadata: " + e.what()));
         }
     } else {
         this->CoverPixbuf = Utils::getIconByName("media-default-album", pixBufSize);

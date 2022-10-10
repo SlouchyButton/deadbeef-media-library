@@ -6,13 +6,14 @@
 #include "filebrowserfilter.hpp"
 #include "addressbox.hpp"
 #include "medialibrary.hpp"
+#include "modelcolumns.hpp"
 
 class TreePopup : public Gtk::Menu {
 public:
     /**
      * Binds events to be callable etc.
      */
-    void initialize(Gtk::IconView* treeview, TreeFilebrowser* treefb, FilebrowserFilter* filter, Addressbox* addressbox);
+    void initialize(Gtk::IconView* iconView, Glib::RefPtr<Gtk::ListStore> model, Addressbox* addressbox /*TreeFilebrowser* treefb, FilebrowserFilter* filter*/);
     TreePopup();
     ~TreePopup();
 private:
@@ -30,9 +31,10 @@ private:
     Glib::RefPtr<Gio::Menu> mMenu;
     Glib::RefPtr<Gio::SimpleActionGroup> mActionGroup;
     Gtk::IconView* mIconView;
-    TreeFilebrowser* mTreeFilebrowser;
+    Glib::RefPtr<Gtk::ListStore> mModel;
     FilebrowserFilter* mFilter;
     Addressbox* mAddressbox;
+    ModelColumns mModelColumns;
 
     void on_click(const Gtk::TreeModel::Path& path);
 
