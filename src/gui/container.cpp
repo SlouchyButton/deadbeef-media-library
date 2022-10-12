@@ -17,7 +17,6 @@ Container::Container() :
     this->mMediaLibrary = MediaLibrary();
     this->mListStore = Gtk::ListStore::create(mModelColumns);
 
-
     this->mLibraryController.initialize(&this->mMediaLibrary, this->mListStore);
     this->mLibraryController.addCallback(std::bind(&Container::notify, this));
 
@@ -27,14 +26,14 @@ Container::Container() :
     //this->mTreeFilebrowser->initialize(&this->mIconView, &this->mAddressbox, &this->mMediaLibrary);
 
     //this->mTreeFilebrowser->setIconSize(deadbeef->conf_get_int(ML_ICON_SIZE, 128));
-    //this->mFilebrowserFilter->setModel(mTreeFilebrowser.get());
-    //this->mSearchbar.setTreeModelFilter(this->mFilebrowserFilter.get());
+    this->mFilebrowserFilter = FilebrowserFilter::create(this->mListStore);
+    this->mSearchbar.setTreeModelFilter(this->mFilebrowserFilter.get());
 
     this->mScrolledWindow.set_policy(Gtk::PolicyType::POLICY_NEVER, Gtk::PolicyType::POLICY_AUTOMATIC);
     this->mScrolledWindow.add(mIconView);
 
 
-    //this->pack_start(mSearchbar, false, true);
+    this->pack_start(mSearchbar, false, true);
     this->pack_start(mAddressbox, false, true);
     this->pack_start(mScrolledWindow, true, true);
 
@@ -65,7 +64,7 @@ void Container::onNotify() {
         /*for (auto row: this->mListStore->children()) {
             std::cout << row.get_value(mModelColumns.mColumnTitle) << std::endl;
         }*/
-        this->mIconView.set_model(this->mListStore);
+        this->mIconView.set_model(this->mFilebrowserFilter);
     } else {
         this->mIconView.unset_model();
     }

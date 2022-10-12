@@ -2,6 +2,8 @@
 
 #include "utils.hpp"
 
+#include <iostream>
+
 Searchbar::Searchbar() {
     auto primaryIcon = this->property_primary_icon_pixbuf();
     primaryIcon = Utils::getIconByName("system-search", 16);
@@ -19,6 +21,7 @@ void Searchbar::on_change() {
 }
 
 bool Searchbar::on_timeout() {
+    std::cout << "Setting needle: " << this->get_text() << std::endl;
     this->mFilebrowserFilter->setNeedle(this->get_text());
     return false;
 }
