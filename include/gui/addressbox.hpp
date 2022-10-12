@@ -25,6 +25,8 @@ public:
     std::string makeValidPath(std::string path);
 
     void updateProgress(bool status, float progress, std::string stats);
+    
+    void on_go_button_click();
 
     Addressbox();
     ~Addressbox();
@@ -37,9 +39,4 @@ private:
     MediaLibrary* mMediaLibrary;
     LibraryController* mLibraryController;
     bool mStatus = false;
-
-    /**
-     * Gets called when pressing Go! button
-     */
-    void on_go_button_click();
 };
