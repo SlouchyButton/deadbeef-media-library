@@ -20,7 +20,7 @@ Container::Container() :
     this->mLibraryController.initialize(&this->mMediaLibrary, this->mListStore);
     this->mLibraryController.addCallback(std::bind(&Container::notify, this));
 
-    this->mTreePopup.initialize(&this->mIconView, this->mListStore, &this->mAddressbox);
+    this->mTreePopup.initialize(&this->mIconView, this->mListStore, &this->mLibraryController, &this->mAddressbox);
     this->mAddressbox.initialize(&this->mMediaLibrary, &this->mLibraryController);
     this->mIconView.initialize();
     //this->mTreeFilebrowser->initialize(&this->mIconView, &this->mAddressbox, &this->mMediaLibrary);

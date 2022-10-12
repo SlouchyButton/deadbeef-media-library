@@ -7,13 +7,14 @@
 #include "addressbox.hpp"
 #include "medialibrary.hpp"
 #include "modelcolumns.hpp"
+#include "librarycontroller.hpp"
 
 class TreePopup : public Gtk::Menu {
 public:
     /**
      * Binds events to be callable etc.
      */
-    void initialize(Gtk::IconView* iconView, Glib::RefPtr<Gtk::ListStore> model, Addressbox* addressbox /*TreeFilebrowser* treefb, FilebrowserFilter* filter*/);
+    void initialize(Gtk::IconView* iconView, Glib::RefPtr<Gtk::ListStore> model, LibraryController* libraryController, Addressbox* addressbox /*TreeFilebrowser* treefb, FilebrowserFilter* filter*/);
     TreePopup();
     ~TreePopup();
 private:
@@ -34,9 +35,11 @@ private:
     Glib::RefPtr<Gtk::ListStore> mModel;
     FilebrowserFilter* mFilter;
     Addressbox* mAddressbox;
+    LibraryController* mLibraryController;
     ModelColumns mModelColumns;
+    Gtk::TreeModel::Path mPath;
 
-    void on_click(const Gtk::TreeModel::Path& path);
+    bool on_click(GdkEventButton* event);
 
     // Various events for the popup
     void popup_add();
@@ -65,25 +68,5 @@ private:
      */
     static void threadedReplacePlaylist(void* ctx);
 
-    // Helper functions
-    /**
-     * Returns selected URI from mTreeView.
-     * 
-     * @return URI of selected row
-     */
-    std::string getSelectedURI();
-
-    /**
-     * Returns all selected URIs from mTreeView.
-     * 
-     * @return Vector of selected rows
-     */
-    std::vector<std::string> getSelectedURIs();
-
-    /**
-     * Returns true if any row in mTreeView is selected.
-     * 
-     * @return True if any row is selected, false otherwise.
-     */
-    bool hasSelected();
+    Album* getAlbumFromPath(Gtk::TreeModel::Path path);
 };
