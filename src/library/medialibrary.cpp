@@ -10,6 +10,8 @@
 #include "settings.hpp"
 
 MediaLibrary::MediaLibrary() {
+    this->mAlbumCount = 0;
+    this->mMediaFileCount = 0;
     //Maybe do some initialization here, like loading from saved file
 }
 
@@ -41,6 +43,7 @@ void MediaLibrary::addMediaFile(MediaFile* mediaFile) {
         this->mMediaFilesMap[mediaFile->Path] = mediaFile;
         this->addAlbum(mediaFile);
         this->mMediaFileCount++;
+        this->libraryDirty = true;
     }
 }
 
@@ -51,20 +54,24 @@ void MediaLibrary::addMediaFile(std::filesystem::path path) {
         this->mMediaFilesMap[path] = mediaFile;
         this->addAlbum(mediaFile);
         this->mMediaFileCount++;
+        this->libraryDirty = true;
     }
 }
 
 void MediaLibrary::addSearchPath(std::filesystem::path path) {
-    //Management not implemented yet, replace current search path
-    /*if (std::find(this->mPaths.begin(), this->mPaths.end(), path) == this->mPaths.end()) {
+    if (std::find(this->mPaths.begin(), this->mPaths.end(), path) == this->mPaths.end()) {
         this->mPaths.push_back(path);
-    }*/
-    this->mPaths.clear();
-    this->mPaths.push_back(path);
+    }
+    this->libraryDirty = true;
 }
 
-std::vector<std::filesystem::path> MediaLibrary::getSearchPaths() {
-    std::vector<std::filesystem::path> paths;
+void MediaLibrary::removeSearchPath(std::filesystem::path path) {
+    this->mPaths.remove(path);
+    this->libraryDirty = true;
+}
+
+std::list<std::filesystem::path> MediaLibrary::getSearchPaths() {
+    std::list<std::filesystem::path> paths;
     for (auto &path : this->mPaths) {
         paths.push_back(std::filesystem::path(path));
     }
@@ -95,25 +102,31 @@ void MediaLibrary::addAlbum(MediaFile* mediaFile) {
             this->mAlbumMap[albumName]->Artist = "VA";
         }
     }
+    this->libraryDirty = true;
 }
 
 void MediaLibrary::loadCovers() {
     int size = deadbeef->conf_get_int(ML_ICON_SIZE, 128);
     for (auto mediaFile : this->mMediaFiles) {
         mediaFile->Cover->regeneratePixbuf(size);
+        this->mMediaFileCount++;
 
     }
     for (auto album : this->mAlbumMap) {
         album.second->Cover->regeneratePixbuf(size);
+        this->mAlbumCount++;
     }
 }
 
 std::string MediaLibrary::getStats() {
-    std::string stats = "Albums: " + std::to_string(this->mAlbumCount) + " MediaFiles: " + std::to_string(this->mMediaFileCount);
+    /*std::cout << "Media files: " << this->mMediaFileCount << std::endl;
+    std::cout << "Albums: " << this->mAlbumCount << std::endl;
+    std::cout << "Albums sz: " << this->mAlbumMap.size() << std::endl;
+    std::cout << "Media files sz: " << this->mMediaFilesMap.size() << std::endl;*/
+
+    std::string stats = "Albums: " + std::to_string(this->mAlbumMap.size()) + " MediaFiles: " + std::to_string(this->mMediaFiles.size());
     return stats;
 }
-
-
 
 MediaLibrary::~MediaLibrary() {
 }

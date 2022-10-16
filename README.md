@@ -22,13 +22,14 @@ Currently works:
 - Show icon view containing all the albums with cover art
 - Double click the album to load the album tracks into currently selected playlist
 - Saves the loaded metadata, files and cover arts into cache for quicker startup next time
+- Custom config dialog that would be more versatile for showing loaded files and doing imports
 
 Planned features:
 
 - Select metadata for grouping into icon view (show artists instead of albums for example)
 - Select which metadata should be shown in icon view together with the picture
-- Context menu containing quality of life tools (like showing dialog with songs in album, metadata etc.)
-- Custom config dialog that would be more versatile for showing loaded files and doing imports
+- Context menu containing quality of life tools (like showing dialog with songs in album, metadata etc.) (Partially)
+- *See issues on github for more planned features and discussion*
 
 Keep in mind that this plugin is very early in development.
 
@@ -40,17 +41,37 @@ Binaries are located on [Releases](https://github.com/SlouchyButton/deadbeef-med
 
 On Arch Linux:
 
-``` pacman -S boost-libs gtkmm3 ninja meson gcc taglib ```
+``` pacman -S --needed boost-libs gtkmm3 ninja meson gcc taglib ```
 
-And then compile the project:
+### Meson+Ninja
 
-``` meson build --buildtype release && cd build && ninja ```
+Compile the project:
+
+``` meson build && cd build && ninja ```
 
 Binaries will be located in ./build/src/ folder.
 
 After compilation, you can use ``` quick-install.sh ``` to quickly move the file to correct location.
 
 To uninstall the plugin, you can remove the .so file from ``` ~/.local/lib/deadbeef/ ``` or run ``` quick-remove.sh ```.
+
+### Makefile
+
+If you prefer Makefile for compilation, it is now possible to use that.
+
+``` make ``` will build the project into ./buildMake folder.
+
+``` make install ``` will install the plugin
+
+``` make buildinstall ``` will build and install the plugin
+
+``` make buildinstallrun ``` will build, install plugin and run deadbeef in one command. This is ease of life target for debugging and developing.
+
+``` make uninstall ``` will uninstall the plugin
+
+``` make clean ``` will delete buildMake folder
+
+*Note: This project uses **boost modules: serialization, filesystem and system**. Default path to this library is set to /usr/lib in Makefile. This is the default on Arch Linux, but this can differ on your environment and since Makefile is dumb and can't find the library itself like meson, neither does boost library support the pkg-config you have to find the boost libraries yourself on your system, if the compilation fails.*
 
 ## Contribution
 

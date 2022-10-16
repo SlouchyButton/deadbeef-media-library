@@ -1,3 +1,5 @@
 build/
+buildMake/
 
 .directory
+/.vscode/settings.json

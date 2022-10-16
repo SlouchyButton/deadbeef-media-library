@@ -87,7 +87,11 @@ void CoverImage::regeneratePixbuf(int pixBufSize) {
             pluginLog(1, ("Couldn't load cover from metadata: " + e.what()));
         }
     } else {
-        this->CoverPixbuf = Utils::getIconByName("media-default-album", pixBufSize);
+        try {
+            this->CoverPixbuf = Utils::getIconByName("media-default-album", pixBufSize, false);
+        } catch (std::exception &e) {
+            this->CoverPixbuf = Utils::getIconByName("media-optical", pixBufSize);
+        }
     }
 }
 

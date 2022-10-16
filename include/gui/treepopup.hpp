@@ -14,7 +14,10 @@ public:
     /**
      * Binds events to be callable etc.
      */
-    void initialize(Gtk::IconView* iconView, Glib::RefPtr<Gtk::ListStore> model, LibraryController* libraryController, Addressbox* addressbox /*TreeFilebrowser* treefb, FilebrowserFilter* filter*/);
+    void initialize(Gtk::IconView* iconView, Glib::RefPtr<FilebrowserFilter> model, LibraryController* libraryController, Addressbox* addressbox /*TreeFilebrowser* treefb, FilebrowserFilter* filter*/);
+
+    Gtk::TreeModel::Path getCurrentPath() const;
+
     TreePopup();
     ~TreePopup();
 private:
@@ -23,7 +26,6 @@ private:
      */
     struct structAddToPlaylist {
         std::vector<Album*> albums;
-        std::string address;
         bool replace;
     };
 
@@ -32,12 +34,12 @@ private:
     Glib::RefPtr<Gio::Menu> mMenu;
     Glib::RefPtr<Gio::SimpleActionGroup> mActionGroup;
     Gtk::IconView* mIconView;
-    Glib::RefPtr<Gtk::ListStore> mModel;
+    Glib::RefPtr<FilebrowserFilter> mModel;
     FilebrowserFilter* mFilter;
     Addressbox* mAddressbox;
     LibraryController* mLibraryController;
     ModelColumns mModelColumns;
-    Gtk::TreeModel::Path mPath;
+    Gtk::TreeModel::Path mPath = Gtk::TreeModel::Path();
 
     bool on_click(GdkEventButton* event);
 
@@ -56,7 +58,7 @@ private:
      * @param address Every URI has to be constructed first, pass mAddressbox->getAddress().
      * @param replace Whether current playlist should be replaced.
      */
-    static void addToPlaylist(std::vector<Album*> albums, std::string address, bool replace);
+    static void addToPlaylist(std::vector<Album*> albums, bool replace);
 
     /**
      * Calls addToPlaylist, make sure to pass structAddToPlaylist as argument.
@@ -69,4 +71,5 @@ private:
     static void threadedReplacePlaylist(void* ctx);
 
     Album* getAlbumFromPath(Gtk::TreeModel::Path path);
+
 };

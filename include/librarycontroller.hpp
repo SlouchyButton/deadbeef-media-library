@@ -8,12 +8,13 @@
 #include "medialibrary.hpp"
 #include "modelcolumns.hpp"
 
+
 class LibraryController {
 public:
     LibraryController();
     ~LibraryController();
 
-    void initialize(MediaLibrary* mediaLibraryPtr, Glib::RefPtr<Gtk::ListStore> listStorePtr);
+    void initialize(Glib::RefPtr<Gtk::ListStore> listStorePtr);
 
     void startImport();
     void stopImport();
@@ -27,14 +28,16 @@ public:
     bool getMaintenanceStatus() const;
 
     void addCallback(std::function<void()> callback);
-private:
+    MediaLibrary* getMediaLibrary();
     MediaLibrary* mMediaLibrary;
+private:
     ModelColumns mModelColumns;
     Glib::RefPtr<Gtk::ListStore> mListStore;
     std::filesystem::path mLibraryPath;
 
     std::thread* mImportLibraryThread;
     std::thread* mMaintenanceThread;
+    std::thread* mInotifyThread;
 
     std::atomic<bool> mImportThreadRun = true;
     std::atomic<bool> mMaintenanceThreadRun = true;
@@ -44,14 +47,22 @@ private:
     std::atomic<float> mMaintenanceProgress = 0;
     std::atomic<bool> mMaintenanceStatus = false;
 
+    std::atomic<bool> mImportPending = false;
+
+    std::map<std::filesystem::path, int> watchDescriptors;
+    int fd;
+
     std::vector<std::function<void()>> mCallbacks;
 
     void importLibraryThread();
+    void importFolder(std::filesystem::path path);
+
     void maintenanceThread();
 
-    void notifyCallbacks();
+    void inotifyThread();
+    void updateInotifyFolders();
 
-    void importFolder(std::filesystem::path path);
+    void notifyCallbacks();
 
     void refreshModel();
 };

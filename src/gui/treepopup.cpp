@@ -24,7 +24,7 @@ TreePopup::TreePopup() {
     this->bind_model(mMenu, true);
 }
 
-void TreePopup::initialize(Gtk::IconView* iconView, Glib::RefPtr<Gtk::ListStore> model, LibraryController* libraryController, Addressbox* addressbox /*TreeFilebrowser* treefb, FilebrowserFilter* filter*/) {
+void TreePopup::initialize(Gtk::IconView* iconView, Glib::RefPtr<FilebrowserFilter> model, LibraryController* libraryController, Addressbox* addressbox /*TreeFilebrowser* treefb, FilebrowserFilter* filter*/) {
     this->mIconView = iconView;
     //this->mTreeFilebrowser = treefb;
     //this->mFilter = filter;
@@ -35,6 +35,10 @@ void TreePopup::initialize(Gtk::IconView* iconView, Glib::RefPtr<Gtk::ListStore>
     this->mIconView->signal_button_press_event().connect(sigc::mem_fun(*this, &TreePopup::on_click), false);
 
     this->show_all();
+}
+
+Gtk::TreeModel::Path TreePopup::getCurrentPath() const {
+    return this->mPath;
 }
 
 bool TreePopup::on_click(GdkEventButton* event) {
@@ -50,7 +54,6 @@ bool TreePopup::on_click(GdkEventButton* event) {
     } else if (event->type == GDK_2BUTTON_PRESS && event->button == 1) {
         Gtk::TreeModel::iterator iter = this->mModel->get_iter(this->mPath);
         const Gtk::TreeRow row = *iter;
-        mDataHolder.address = mAddressbox->getAddress();
         mDataHolder.albums = {row[mModelColumns.mColumnAlbumPointer]};
         mDataHolder.replace = deadbeef->conf_get_int(ML_DOUBLECLICK_REPLACE, 1);
         intptr_t tid = deadbeef->thread_start(TreePopup::threadedAddToPlaylist, static_cast<void*>(&mDataHolder));
@@ -58,12 +61,13 @@ bool TreePopup::on_click(GdkEventButton* event) {
     } else {
         this->mIconView->select_path(this->mPath);
     }
+
+    return true;
 }
 
 void TreePopup::popup_add() {
         Gtk::TreeModel::iterator iter = this->mModel->get_iter(this->mPath);
         const Gtk::TreeRow row = *iter;
-        mDataHolder.address = mAddressbox->getAddress();
         mDataHolder.albums = {row[mModelColumns.mColumnAlbumPointer]};
         mDataHolder.replace = false;
         intptr_t tid = deadbeef->thread_start(TreePopup::threadedAddToPlaylist, static_cast<void*>(&mDataHolder));
@@ -73,7 +77,6 @@ void TreePopup::popup_add() {
 void TreePopup::popup_replace() {
         Gtk::TreeModel::iterator iter = this->mModel->get_iter(this->mPath);
         const Gtk::TreeRow row = *iter;
-        mDataHolder.address = mAddressbox->getAddress();
         mDataHolder.albums = {row[mModelColumns.mColumnAlbumPointer]};
         mDataHolder.replace = true;
         intptr_t tid = deadbeef->thread_start(TreePopup::threadedAddToPlaylist, static_cast<void*>(&mDataHolder));
@@ -82,10 +85,10 @@ void TreePopup::popup_replace() {
 
 void TreePopup::threadedAddToPlaylist(void* ctx) {
     auto holder = (TreePopup::structAddToPlaylist*)(ctx);
-    TreePopup::addToPlaylist(holder->albums, holder->address, holder->replace);
+    TreePopup::addToPlaylist(holder->albums, holder->replace);
 }
 
-void TreePopup::addToPlaylist(std::vector<Album*> albums, std::string address, bool replace) {
+void TreePopup::addToPlaylist(std::vector<Album*> albums, bool replace) {
     ddb_playlist_t* plt = deadbeef->plt_get_curr();
 
     if (replace) {

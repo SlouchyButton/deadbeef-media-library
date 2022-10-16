@@ -37,7 +37,7 @@ public:
      * 
      * @return Pointer to the icon, if name is resolved, nullptr otherwise.
      */
-    static Glib::RefPtr<Gdk::Pixbuf> getIconByName(const char* name, uint size);
+    static Glib::RefPtr<Gdk::Pixbuf> getIconByName(const char* name, uint size, bool force = true);
 
     /**
      * Replaces & with &amp; as defined by GTK.

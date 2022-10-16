@@ -76,15 +76,17 @@ std::string Utils::escapeTooltip(std::string tooltip) {
     return n;
 }
 
-Glib::RefPtr<Gdk::Pixbuf> Utils::getIconByName(const char* name, uint size) {
+Glib::RefPtr<Gdk::Pixbuf> Utils::getIconByName(const char* name, uint size, bool force) {
     Glib::RefPtr<Gtk::IconTheme> theme = Gtk::IconTheme::get_default();
     Gtk::IconInfo icon = theme->lookup_icon(name, size);
     if (icon) {
         return icon.load_icon();
-    } else {
+    } else if (force) {
         Glib::RefPtr<Gdk::Pixbuf> invalidIcon = Gdk::Pixbuf::create(Gdk::COLORSPACE_RGB, true, 8, size, size);
         invalidIcon->fill(0xFF00FFFF);
         return invalidIcon;
+    } else {
+        throw std::runtime_error("Icon " + std::string(name) + " not found");
     }
 }
 
