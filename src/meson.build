@@ -16,6 +16,8 @@ source_files = files(
     'filebrowser.cpp',
     'utils.cpp',
     'librarycontroller.cpp',
+    'gui/settings/window.cpp',
+    'gui/settings/pathscolumns.cpp',
     'gui/modelcolumns.cpp',
     'gui/container.cpp',
     'gui/iconview.cpp',
@@ -41,6 +43,7 @@ source_files = files(
 includes = [
     include_directories('../include'),
     include_directories('../include/gui'),
+    include_directories('../include/gui/settings'),
     include_directories('../include/library'),
     include_directories('../include/metadata'),
     include_directories('../include/metadata/abstract'),

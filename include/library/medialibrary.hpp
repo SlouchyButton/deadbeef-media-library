@@ -12,6 +12,7 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>
+#include <boost/serialization/list.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/base_object.hpp>
 
@@ -32,17 +33,19 @@ public:
     void addMediaFile(std::filesystem::path path);
 
     void addSearchPath(std::filesystem::path path);
-    std::vector<std::filesystem::path> getSearchPaths();
+    void removeSearchPath(std::filesystem::path path);
+    std::list<std::filesystem::path> getSearchPaths();
 
     void loadCovers();
+    bool libraryDirty = false;
 private:
     friend class boost::serialization::access;
     std::vector<MediaFile*> mMediaFiles;
     std::map<std::string, Album*> mAlbumMap;
     std::map<std::string, MediaFile*> mMediaFilesMap;
-    std::vector<std::string> mPaths;
-    int mAlbumCount = 0;
-    int mMediaFileCount = 0;
+    std::list<std::string> mPaths;
+    int mAlbumCount;
+    int mMediaFileCount;
 
     template<class Archive>
     void serialize(Archive &a, const unsigned version){

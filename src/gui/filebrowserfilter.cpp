@@ -15,9 +15,7 @@ Glib::RefPtr<FilebrowserFilter> FilebrowserFilter::create(Glib::RefPtr<Gtk::List
 }
 
 void FilebrowserFilter::setNeedle(std::string newNeedle) {
-    std::cout << "Lowering needle: " << newNeedle << std::endl;
     this->mNeedle = boost::to_lower_copy(newNeedle);
-    std::cout << "Needle: " << this->mNeedle << std::endl;
     this->refilter();
 }
 
@@ -26,7 +24,6 @@ void FilebrowserFilter::setModel(TreeFilebrowser* treefb) {
 }
 
 bool FilebrowserFilter::filter_func(Gtk::TreeIter iter) {
-    std::cout << "Filtering" << std::endl;
     if (this->mNeedle.empty()) {
         return true;
     }
