@@ -4,6 +4,8 @@
 #include <thread>
 #include <atomic>
 #include <memory>
+#include <mutex>
+#include <condition_variable>
 
 #include "medialibrary.hpp"
 #include "modelcolumns.hpp"
@@ -54,6 +56,9 @@ private:
     std::atomic<bool> mMaintenanceStatus = false;
 
     std::atomic<bool> mImportPending = false;
+
+    std::condition_variable mMaintenanceCtrl;
+    std::mutex mMaintenanceMutex;
 
     std::map<std::filesystem::path, int> watchDescriptors;
     int fd;

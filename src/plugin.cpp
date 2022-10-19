@@ -25,7 +25,7 @@ DB_plugin_t* ddb_misc_media_library_load(DB_functions_t* api) {
     plugin.plugin.id = "media-library";
     plugin.plugin.name = "Media Library";
     plugin.plugin.descr = "Media Library plugin";
-    plugin.plugin.copyright = "GPL-3.0";
+    plugin.plugin.copyright = "";
     plugin.plugin.website = "https://github.com/SlouchyButton/deadbeef-media-library";
     plugin.plugin.connect = &Controller::pluginConnect;
     plugin.plugin.disconnect = &Controller::pluginDisconnect;

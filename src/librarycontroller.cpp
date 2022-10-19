@@ -155,18 +155,9 @@ void LibraryController::maintenanceThread() {
     pluginLog(2, "Maintenance Thread - Starting inotify thread");
     this->mInotifyThread = new std::thread(&LibraryController::inotifyThread, this);
 
-    //Get from OpenRGB, so it can refresh in period of long time, but be instantly stoppable
-    while (true) {
-        if (!this->mMaintenanceThreadRun.load()) {
-            pluginLog(2, "Maintenance Thread - Stopping maintenance thread, requested by user");
-            pluginLog(2, "Maintenance Thread - Waiting for inotify thread to stop");
-            this->mInotifyThread->join();
-            pluginLog(2, "Maintenance Thread - Inotify thread stopped");
-            this->mInotifyThread = NULL;
-            return;
-        }
-
+    while (this->mMaintenanceThreadRun.load()) {
         if (this->mImportPending.load()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
             this->mImportPending = false;
             this->startImport();
         }
@@ -179,9 +170,16 @@ void LibraryController::maintenanceThread() {
             this->mMediaLibrary->libraryDirty = false;
             pluginLog(2, "Maintenance Thread - Library saved");
         }
-        //pluginLog(2, "Maintenance Thread - Maintenance done, sleeping");
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        std::unique_lock<std::mutex> l(mMaintenanceMutex);
+        mMaintenanceCtrl.wait_for(l, std::chrono::seconds(10));
     }
+
+    pluginLog(2, "Maintenance Thread - Stopping maintenance thread, requested by user");
+    pluginLog(2, "Maintenance Thread - Waiting for inotify thread to stop");
+    this->mInotifyThread->join();
+    pluginLog(2, "Maintenance Thread - Inotify thread stopped");
+    this->mInotifyThread = NULL;
 }
 
 void LibraryController::inotifyThread() {
@@ -200,17 +198,7 @@ void LibraryController::inotifyThread() {
 
     this->updateInotifyFolders();
 
-    while (1) {
-        if (!this->mMaintenanceThreadRun.load()) {
-            pluginLog(2, "Inotify Thread - Stopping inotify thread, requested by user");
-            for (auto &entry : this->watchDescriptors) {
-                inotify_rm_watch(this->fd, entry.second);
-            }
-            close(this->fd);
-            pluginLog(2, "Inotify Thread - Inotify watch gracefully removed and inotify closed");
-            return;
-        }
-
+    while (this->mMaintenanceThreadRun.load()) {
         length = read(this->fd, buffer, BUF_LEN);
         if (length < 0) {
             pluginLog(0, "Inotify Thread - Couldn't read from inotify");
@@ -265,8 +253,16 @@ void LibraryController::inotifyThread() {
             }
             i += EVENT_SIZE + event->len;
         }
+        this->mMaintenanceCtrl.notify_one();
         this->mImportPending = true;
     }
+
+    pluginLog(2, "Inotify Thread - Stopping inotify thread, requested by user");
+    for (auto &entry : this->watchDescriptors) {
+        inotify_rm_watch(this->fd, entry.second);
+    }
+    close(this->fd);
+    pluginLog(2, "Inotify Thread - Inotify watch gracefully removed and inotify closed");
 }
 
 void LibraryController::updateInotifyFolders() {
@@ -324,6 +320,7 @@ void LibraryController::stopImport() {
 void LibraryController::stopMaintenanceThread() {
     if(this->mMaintenanceThread != NULL) {
         this->mMaintenanceThreadRun = false;
+        this->mMaintenanceCtrl.notify_one();
         this->mMaintenanceThread->join();
         this->mMaintenanceThread = NULL;
         this->mMaintenanceThreadRun = true;
