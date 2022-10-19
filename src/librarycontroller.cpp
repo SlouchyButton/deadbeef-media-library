@@ -72,7 +72,7 @@ void LibraryController::importLibraryThread() {
     }
     pluginLog(2, "Import Thread - Found " + std::to_string(countTotal) + " items");
 
-    this->mFoundPaths = std::vector<std::filesystem::path>();
+    this->mFoundPaths.clear();
 
     int i = 0;
     for (auto &entry : directories) {
@@ -91,7 +91,7 @@ void LibraryController::importLibraryThread() {
             this->importFolder(entry.path());
         } else {
             this->mMediaLibrary->addMediaFile(entry.path());
-            this->mFoundPaths.push_back(entry.path());
+            this->mFoundPaths[entry.path()] = 1;
         }
 
         i++;
@@ -99,7 +99,7 @@ void LibraryController::importLibraryThread() {
 
     pluginLog(2, "Import Thread - Cleaning up non-existing files");
     for (MediaFile* entry : this->mMediaLibrary->getMediaFiles()) {
-        if (std::find(this->mFoundPaths.begin(), this->mFoundPaths.end(), entry->Path) == this->mFoundPaths.end()) {
+        if (this->mFoundPaths.find(entry->Path) == this->mFoundPaths.end()) {
             this->mMediaLibrary->removeMediaFile(entry);
         }
     }
@@ -126,7 +126,7 @@ void LibraryController::importFolder(std::filesystem::path path) {
                 this->importFolder(entry.path());
             } else {
                 this->mMediaLibrary->addMediaFile(entry.path());
-                this->mFoundPaths.push_back(entry.path());
+                this->mFoundPaths[entry.path()] = 1;
                 this->notifyCallbacks();
             }
         }

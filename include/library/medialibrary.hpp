@@ -24,6 +24,7 @@ public:
     ~MediaLibrary();
 
     std::vector<MediaFile*> getMediaFiles();
+    std::map<std::string, MediaFile*> getMediaFilesMap();
     std::vector<MediaFile*> getMediaFiles(std::string albumName);
     std::vector<Album*> getAlbums();
 

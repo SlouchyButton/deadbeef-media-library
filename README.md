@@ -2,6 +2,8 @@
 
 # Deadbeef Media Library
 
+![Image](./player.jpg "Deadbeef player with loaded plugin")
+
 Media library is currently missing in Deadbeef, so people wanting to use Deadbeef were left with two options:
 
 - Use abandoned and outdated file browser plugin, that was very unstable

@@ -19,6 +19,10 @@ std::vector<MediaFile*> MediaLibrary::getMediaFiles() {
     return this->mMediaFiles;
 }
 
+std::map<std::string, MediaFile*> MediaLibrary::getMediaFilesMap() {
+    return this->mMediaFilesMap;
+}
+
 std::vector<MediaFile*> MediaLibrary::getMediaFiles(std::string albumName){
     std::vector<MediaFile*> mediaFiles = {};
     for (auto &mediaFile : this->mMediaFiles) {
