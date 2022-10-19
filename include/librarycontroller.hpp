@@ -28,12 +28,16 @@ public:
     bool getMaintenanceStatus() const;
 
     void addCallback(std::function<void()> callback);
+
+    void refreshModel();
+
     MediaLibrary* getMediaLibrary();
     MediaLibrary* mMediaLibrary;
 private:
     ModelColumns mModelColumns;
     Glib::RefPtr<Gtk::ListStore> mListStore;
     std::filesystem::path mLibraryPath;
+    std::vector<std::filesystem::path> mFoundPaths;
 
     std::thread* mImportLibraryThread;
     std::thread* mMaintenanceThread;
@@ -63,6 +67,4 @@ private:
     void updateInotifyFolders();
 
     void notifyCallbacks();
-
-    void refreshModel();
 };

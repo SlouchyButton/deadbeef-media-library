@@ -34,6 +34,8 @@ private:
     Glib::Dispatcher mDispatcher;
     SettingsWindow* mSettingsWindow;
 
+    bool doneNotify = false;
+
     void buildTreeview();
 
     void onNotify();

@@ -31,6 +31,8 @@ public:
 
     void addMediaFile(MediaFile* mediaFile);
     void addMediaFile(std::filesystem::path path);
+    void removeMediaFile(MediaFile* mediaFile);
+    void removeMediaFile(std::filesystem::path path);
 
     void addSearchPath(std::filesystem::path path);
     void removeSearchPath(std::filesystem::path path);
@@ -53,4 +55,5 @@ private:
     }
     
     void addAlbum(MediaFile* mediaFile);
+    void removeFromAlbum(MediaFile* mediaFile);
 };

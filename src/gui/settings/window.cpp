@@ -89,14 +89,12 @@ SettingsWindow::SettingsWindow(LibraryController* controller) :
 }
 
 void SettingsWindow::updatePaths(std::list<std::filesystem::path> paths) {
-    std::cout << "Adding paths" << std::endl;
     this->mListStore->clear();
     Gtk::TreeModel::iterator iter;
     for (std::filesystem::path &path : paths) {
         iter = this->mListStore->append();
         Gtk::TreeModel::Row row = *iter;
         row[mModelColumns.mColumnPath] = path.string();
-        std::cout << "Added path: " << path.string() << std::endl;
     }
 }
 

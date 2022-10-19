@@ -58,6 +58,26 @@ void MediaLibrary::addMediaFile(std::filesystem::path path) {
     }
 }
 
+void MediaLibrary::removeMediaFile(MediaFile* mediaFile) {
+    if (this->mMediaFilesMap.find(mediaFile->Path) != this->mMediaFilesMap.end()) {
+        this->mMediaFiles.erase(std::remove(this->mMediaFiles.begin(), this->mMediaFiles.end(), mediaFile), this->mMediaFiles.end());
+        this->mMediaFilesMap.erase(mediaFile->Path);
+        this->removeFromAlbum(mediaFile);
+        this->mMediaFileCount--;
+        this->libraryDirty = true;
+    }
+}
+
+void MediaLibrary::removeMediaFile(std::filesystem::path path) {
+    if (this->mMediaFilesMap.find(path) != this->mMediaFilesMap.end()) {
+        this->mMediaFiles.erase(std::remove(this->mMediaFiles.begin(), this->mMediaFiles.end(), this->mMediaFilesMap[path]), this->mMediaFiles.end());
+        this->mMediaFilesMap.erase(path);
+        this->removeFromAlbum(this->mMediaFilesMap[path]);
+        this->mMediaFileCount--;
+        this->libraryDirty = true;
+    }
+}
+
 void MediaLibrary::addSearchPath(std::filesystem::path path) {
     if (std::find(this->mPaths.begin(), this->mPaths.end(), path) == this->mPaths.end()) {
         this->mPaths.push_back(path);
@@ -105,6 +125,19 @@ void MediaLibrary::addAlbum(MediaFile* mediaFile) {
     this->libraryDirty = true;
 }
 
+void MediaLibrary::removeFromAlbum(MediaFile* mediaFile) {
+    std::string albumName = mediaFile->Album;
+    if (this->mAlbumMap.find(albumName) != this->mAlbumMap.end()) {
+        //this->mAlbumMap[albumName]->Length -= mediaFile->Length;
+        this->mAlbumMap[albumName]->MediaFiles.erase(std::remove(this->mAlbumMap[albumName]->MediaFiles.begin(), this->mAlbumMap[albumName]->MediaFiles.end(), mediaFile), this->mAlbumMap[albumName]->MediaFiles.end());
+        if (this->mAlbumMap[albumName]->MediaFiles.size() == 0) {
+            this->mAlbumMap.erase(albumName);
+            this->mAlbumCount--;
+        }
+    }
+    this->libraryDirty = true;
+}
+
 void MediaLibrary::loadCovers() {
     int size = deadbeef->conf_get_int(ML_ICON_SIZE, 128);
     for (auto mediaFile : this->mMediaFiles) {
@@ -119,11 +152,6 @@ void MediaLibrary::loadCovers() {
 }
 
 std::string MediaLibrary::getStats() {
-    /*std::cout << "Media files: " << this->mMediaFileCount << std::endl;
-    std::cout << "Albums: " << this->mAlbumCount << std::endl;
-    std::cout << "Albums sz: " << this->mAlbumMap.size() << std::endl;
-    std::cout << "Media files sz: " << this->mMediaFilesMap.size() << std::endl;*/
-
     std::string stats = "Albums: " + std::to_string(this->mAlbumMap.size()) + " MediaFiles: " + std::to_string(this->mMediaFiles.size());
     return stats;
 }

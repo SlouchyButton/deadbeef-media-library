@@ -59,15 +59,20 @@ void Container::onNotify() {
     bool isMaintaining = this->mLibraryController.getMaintenanceStatus();
     bool workersDone = !isImporting && !isMaintaining;
     if (workersDone) {
-        pluginLog(2, "Container - Workers done, setting model");
-        this->mIconView.set_model(this->mFilebrowserFilter);
-        if (!this->mTreePopup.getCurrentPath().empty()) {
-            this->mIconView.select_path(this->mTreePopup.getCurrentPath());
-            this->mIconView.scroll_to_path(this->mTreePopup.getCurrentPath(), true, 0.5, 0.5);
+        if (!doneNotify) {
+            pluginLog(2, "Container - Workers done, setting model");
+            this->mIconView.unset_model();
+            this->mLibraryController.refreshModel();
+            this->mIconView.set_model(this->mFilebrowserFilter);
+            if (!this->mTreePopup.getCurrentPath().empty()) {
+                this->mIconView.select_path(this->mTreePopup.getCurrentPath());
+                this->mIconView.scroll_to_path(this->mTreePopup.getCurrentPath(), true, 0.5, 0.5);
+            }
+            this->mSettingsWindow->updatePaths(this->mLibraryController.mMediaLibrary->getSearchPaths());
+            doneNotify = true;
         }
-        this->mSettingsWindow->updatePaths(this->mLibraryController.mMediaLibrary->getSearchPaths());
     } else {
-        this->mIconView.unset_model();
+        doneNotify = false;
     }
     this->mAddressbox.updateProgress(isImporting, this->mLibraryController.getImportProgress(), this->mLibraryController.mMediaLibrary->getStats());
     this->mSettingsWindow->updateProgress(isImporting, this->mLibraryController.getImportProgress(), this->mLibraryController.mMediaLibrary->getStats());
