@@ -98,6 +98,15 @@ std::list<std::filesystem::path> MediaLibrary::getSearchPaths() {
     return paths;
 }
 
+void MediaLibrary::clearLibrary() {
+    this->mMediaFiles.clear();
+    this->mMediaFilesMap.clear();
+    this->mAlbumMap.clear();
+    this->mAlbumCount = 0;
+    this->mMediaFileCount = 0;
+    this->libraryDirty = true;
+}
+
 void MediaLibrary::addAlbum(MediaFile* mediaFile) {
     std::string albumName = mediaFile->Album;
     if (this->mAlbumMap.find(albumName) == this->mAlbumMap.end()) {

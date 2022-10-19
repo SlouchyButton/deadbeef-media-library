@@ -38,6 +38,8 @@ public:
     void removeSearchPath(std::filesystem::path path);
     std::list<std::filesystem::path> getSearchPaths();
 
+    void clearLibrary();
+
     void loadCovers();
     bool libraryDirty = false;
 private:

@@ -6,6 +6,7 @@ SettingsWindow::SettingsWindow(LibraryController* controller) :
     mFileChooserButton("Choose a folder"),
     mAddPathButton("Add path"),
     mImportButton("Import"),
+    mCleanImportButton("Clean import"),
     mRemovePathButton("Remove path"),
     mStatusbar(),
     mProgressBar()
@@ -41,6 +42,9 @@ SettingsWindow::SettingsWindow(LibraryController* controller) :
 
     this->mImportButton.set_margin_top(1); this->mImportButton.set_margin_bottom(1); this->mImportButton.set_margin_left(1); this->mImportButton.set_margin_right(5);
     this->mImportButton.signal_clicked().connect(sigc::mem_fun(*this, &SettingsWindow::on_import_button_click));
+    
+    this->mCleanImportButton.set_margin_top(1); this->mCleanImportButton.set_margin_bottom(1); this->mCleanImportButton.set_margin_left(1); this->mCleanImportButton.set_margin_right(5);
+    this->mCleanImportButton.signal_clicked().connect(sigc::mem_fun(*this, &SettingsWindow::on_clean_import_button_click));
 
     //set css for progress bar
     Glib::RefPtr<Gtk::CssProvider> cssProvider = Gtk::CssProvider::create();
@@ -74,6 +78,7 @@ SettingsWindow::SettingsWindow(LibraryController* controller) :
     mMainBox->pack_start(mStatusbar, false, false);
 
     mButtonBox->pack_start(mImportButton, false, false);
+    mButtonBox->pack_start(mCleanImportButton, false, false);
     mButtonBox->pack_start(mRemovePathButton, false, false);
 
     mFileSelectBox->pack_start(mFileChooserButton, false, false);
@@ -133,6 +138,11 @@ void SettingsWindow::on_removePath_button_click() {
 }
 
 void SettingsWindow::on_import_button_click() {
+    this->mController->startImport();
+}
+
+void SettingsWindow::on_clean_import_button_click() {
+    this->mController->clearLibrary();
     this->mController->startImport();
 }
 

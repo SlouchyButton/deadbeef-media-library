@@ -21,6 +21,7 @@ protected:
     Gtk::Button mAddPathButton;
     Gtk::TreeView* mPathsView;
     Gtk::Button mImportButton;
+    Gtk::Button mCleanImportButton;
     Gtk::Button mRemovePathButton;
     Gtk::Statusbar mStatusbar;
     Gtk::ProgressBar mProgressBar;
@@ -33,4 +34,5 @@ protected:
     void on_addPath_button_click();
     void on_removePath_button_click();
     void on_import_button_click();
+    void on_clean_import_button_click();
 };

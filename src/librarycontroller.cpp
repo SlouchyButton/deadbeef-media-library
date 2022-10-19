@@ -34,6 +34,11 @@ void LibraryController::initialize(Glib::RefPtr<Gtk::ListStore> listStorePtr) {
     this->mMaintenanceThread = new std::thread(&LibraryController::maintenanceThread, this);
 }
 
+void LibraryController::clearLibrary() {
+    this->mMediaLibrary->clearLibrary();
+    //this->mListStore->clear();
+}
+
 void LibraryController::startImport() {
     this->mImportLibraryThread = new std::thread(&LibraryController::importLibraryThread, this);
 }

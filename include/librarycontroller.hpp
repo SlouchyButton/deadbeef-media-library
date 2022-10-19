@@ -16,6 +16,8 @@ public:
 
     void initialize(Glib::RefPtr<Gtk::ListStore> listStorePtr);
 
+    void clearLibrary();
+
     void startImport();
     void stopImport();
 
