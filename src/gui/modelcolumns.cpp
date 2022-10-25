@@ -5,5 +5,6 @@ ModelColumns::ModelColumns() {
     this->add(this->mColumnAlbumPointer);
     this->add(this->mColumnTitle);
     this->add(this->mColumnSubtitle);
+    this->add(this->mColumnTooltip);
     this->add(this->mColumnVisibility);
 }

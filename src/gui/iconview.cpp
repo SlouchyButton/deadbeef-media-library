@@ -27,6 +27,6 @@ void IconView::initialize() {
     this->add_attribute(this->mTextRenderers["artist"].property_text(), this->mModelColumns.mColumnSubtitle);
 
     this->set_has_tooltip(true);
-    this->set_tooltip_column(2);
+    this->set_tooltip_column(4);
     this->set_item_width(deadbeef->conf_get_int(ML_ICON_SIZE, 128)+5);
 }

@@ -51,9 +51,12 @@ CoverImage::CoverImage(std::filesystem::path path, int pixBufSize) {
             this->CoverPixbuf->save_to_buffer(gData, gSize, "jpeg", optionKeys, optionValues);
         }
 
+        this->hash = gSize;
+
         this->data = std::vector<char>(gData, gData + gSize);
         delete gData;
         delete tagLibData;
+
     } else {
         this->data = std::vector<char>();
         this->regeneratePixbuf(pixBufSize);

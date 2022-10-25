@@ -10,5 +10,6 @@ public:
     Gtk::TreeModelColumn<Album*> mColumnAlbumPointer;
     Gtk::TreeModelColumn<std::string> mColumnTitle;
     Gtk::TreeModelColumn<std::string> mColumnSubtitle;
+    Gtk::TreeModelColumn<std::string> mColumnTooltip;
     Gtk::TreeModelColumn<bool> mColumnVisibility;
 };

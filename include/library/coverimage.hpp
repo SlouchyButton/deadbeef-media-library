@@ -20,10 +20,11 @@ public:
     std::vector<char> data;
     int size;
     Glib::RefPtr<Gdk::Pixbuf> CoverPixbuf;
+    std::string hash;
 
     template<class Archive>
     void serialize(Archive &a, const unsigned version){
-        a & data;
+        a & data & hash;
     }
 
 private:

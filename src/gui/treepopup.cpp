@@ -12,6 +12,7 @@ TreePopup::TreePopup() {
     this->mMenu->append("_Replace current playlist", "popup.replace");
     this->mMenu->append("_Open containing folder", "popup.open");
     this->mMenu->append("_Refresh", "popup.refresh");
+    this->mMenu->append("_Print metadata", "popup.metadata");
 
     this->mActionGroup = Gio::SimpleActionGroup::create();
 
@@ -19,6 +20,7 @@ TreePopup::TreePopup() {
     this->mActionGroup->add_action("replace", sigc::mem_fun(*this, &TreePopup::popup_replace));
     this->mActionGroup->add_action("open", sigc::mem_fun(*this, &TreePopup::popup_open_folder));
     this->mActionGroup->add_action("refresh", sigc::mem_fun(*this, &TreePopup::popup_refresh));
+    this->mActionGroup->add_action("metadata", sigc::mem_fun(*this, &TreePopup::popup_metadata));
 
     this->insert_action_group("popup", this->mActionGroup);
     this->bind_model(mMenu, true);
@@ -136,6 +138,17 @@ void TreePopup::popup_open_folder() {
 
 void TreePopup::popup_refresh() {
     this->mAddressbox->on_go_button_click();
+}
+
+void TreePopup::popup_metadata() {
+    Gtk::TreeModel::iterator iter = this->mModel->get_iter(this->mPath);
+    const Gtk::TreeRow row = *iter;
+    Album* album = row[mModelColumns.mColumnAlbumPointer];
+    for (auto &file : album->MediaFiles) {
+        for (auto &tag : file->MetaData) {
+            std::cout << tag.first << ": " << tag.second << std::endl;
+        }
+    }
 }
 
 TreePopup::~TreePopup() {

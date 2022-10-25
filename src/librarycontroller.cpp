@@ -104,6 +104,9 @@ void LibraryController::importLibraryThread() {
         }
     }
 
+    pluginLog(2, "Import Thread - Sorting MediaFiles");
+    this->mMediaLibrary->sortMediaFiles();
+
     pluginLog(2, "Import Thread - Library imported");
 
     //Everything done, cleaning up and notifying for the last time
@@ -304,6 +307,7 @@ void LibraryController::refreshModel() {
         row[mModelColumns.mColumnTitle] = entry->Name;
         row[mModelColumns.mColumnSubtitle] = entry->Artist;
         row[mModelColumns.mColumnAlbumPointer] = entry;
+        row[mModelColumns.mColumnTooltip] = Utils::escapeTooltip(entry->Name);//+ " - " + entry->Artist;
         row[mModelColumns.mColumnVisibility] = true;
     }
 }

@@ -10,8 +10,6 @@
 #include "settings.hpp"
 
 MediaLibrary::MediaLibrary() {
-    this->mAlbumCount = 0;
-    this->mMediaFileCount = 0;
     //Maybe do some initialization here, like loading from saved file
 }
 
@@ -46,7 +44,6 @@ void MediaLibrary::addMediaFile(MediaFile* mediaFile) {
         this->mMediaFiles.push_back(mediaFile);
         this->mMediaFilesMap[mediaFile->Path] = mediaFile;
         this->addAlbum(mediaFile);
-        this->mMediaFileCount++;
         this->libraryDirty = true;
     }
 }
@@ -57,27 +54,24 @@ void MediaLibrary::addMediaFile(std::filesystem::path path) {
         this->mMediaFiles.push_back(mediaFile);
         this->mMediaFilesMap[path] = mediaFile;
         this->addAlbum(mediaFile);
-        this->mMediaFileCount++;
         this->libraryDirty = true;
     }
 }
 
 void MediaLibrary::removeMediaFile(MediaFile* mediaFile) {
     if (this->mMediaFilesMap.find(mediaFile->Path) != this->mMediaFilesMap.end()) {
+        this->removeFromAlbum(mediaFile);
         this->mMediaFiles.erase(std::remove(this->mMediaFiles.begin(), this->mMediaFiles.end(), mediaFile), this->mMediaFiles.end());
         this->mMediaFilesMap.erase(mediaFile->Path);
-        this->removeFromAlbum(mediaFile);
-        this->mMediaFileCount--;
         this->libraryDirty = true;
     }
 }
 
 void MediaLibrary::removeMediaFile(std::filesystem::path path) {
     if (this->mMediaFilesMap.find(path) != this->mMediaFilesMap.end()) {
+        this->removeFromAlbum(this->mMediaFilesMap[path]);
         this->mMediaFiles.erase(std::remove(this->mMediaFiles.begin(), this->mMediaFiles.end(), this->mMediaFilesMap[path]), this->mMediaFiles.end());
         this->mMediaFilesMap.erase(path);
-        this->removeFromAlbum(this->mMediaFilesMap[path]);
-        this->mMediaFileCount--;
         this->libraryDirty = true;
     }
 }
@@ -102,21 +96,59 @@ std::list<std::filesystem::path> MediaLibrary::getSearchPaths() {
     return paths;
 }
 
+void MediaLibrary::sortMediaFiles() {
+    //sort media files in albums by track number and then by title
+    for (auto &album : this->mAlbumMap) {
+        std::sort(album.second->MediaFiles.begin(), album.second->MediaFiles.end(), [](MediaFile* a, MediaFile* b) {
+            if (a->MetaData["TRACKNUMBER"] == b->MetaData["TRACKNUMBER"]) {
+                return a->Title < b->Title;
+            }
+
+            int aTrackNumber = 0;
+            int bTrackNumber = 0;
+
+            try {
+                aTrackNumber = std::stoi(a->MetaData["TRACKNUMBER"]);
+            } catch (std::invalid_argument& e) {
+                pluginLog(1, "Track " + a->Title + " has invalid track number '" + a->MetaData["TRACKNUMBER"] + "' (in album " + a->Album + ")");
+            }
+            try {
+                bTrackNumber = std::stoi(b->MetaData["TRACKNUMBER"]);
+            } catch (std::invalid_argument& e) {
+                pluginLog(1, "Track " + b->Title + " has invalid track number '" + b->MetaData["TRACKNUMBER"] + "' (in album " + b->Album + ")");
+            }
+            return aTrackNumber < bTrackNumber;
+        });
+    }
+}
+
+void MediaLibrary::sortAlbums() {
+    //Not implemented yet
+}
+
 void MediaLibrary::clearLibrary() {
     this->mMediaFiles.clear();
     this->mMediaFilesMap.clear();
     this->mAlbumMap.clear();
-    this->mAlbumCount = 0;
-    this->mMediaFileCount = 0;
     this->libraryDirty = true;
 }
 
 void MediaLibrary::addAlbum(MediaFile* mediaFile) {
-    std::string albumName = mediaFile->Album;
-    if (this->mAlbumMap.find(albumName) == this->mAlbumMap.end()) {
+    std::string albumId = mediaFile->Album;
+    std::string albumArtist = mediaFile->Artist;
+    bool albumExists = false;
+    if (mediaFile->MetaData.find("ALBUM ARTIST") != mediaFile->MetaData.end()) {
+        albumArtist = mediaFile->MetaData["ALBUM ARTIST"];
+        albumId = mediaFile->Album + " - " + albumArtist;
+        albumExists = !(this->mAlbumMap.find(albumId) == this->mAlbumMap.end());
+    } else {
+        albumId = mediaFile->Album + " - " + mediaFile->Cover->hash;
+        albumExists = !(this->mAlbumMap.find(albumId) == this->mAlbumMap.end());
+    }
+    if (!albumExists) {
         Album* album = new Album();
-        album->Name = albumName;
-        album->Artist = mediaFile->Artist;
+        album->Name = mediaFile->Album;
+        album->Artist = albumArtist;
         album->Genre = mediaFile->Genre;
         album->Year = mediaFile->Year;
         album->Length = mediaFile->Length;
@@ -124,28 +156,27 @@ void MediaLibrary::addAlbum(MediaFile* mediaFile) {
 
         album->Cover = new CoverImage(mediaFile->Cover->data, deadbeef->conf_get_int(ML_ICON_SIZE, 32));
 
-        this->mAlbumMap[albumName] = album;
+        this->mAlbumMap[albumId] = album;
 
-        this->mAlbumCount++;
     } else {
-        this->mAlbumMap[albumName]->Length += mediaFile->Length;
-        this->mAlbumMap[albumName]->MediaFiles.push_back(mediaFile);
+        this->mAlbumMap[albumId]->Length = mediaFile->Length;
+        this->mAlbumMap[albumId]->MediaFiles.push_back(mediaFile);
 
-        if (this->mAlbumMap[albumName]->Artist != mediaFile->Artist) {
-            this->mAlbumMap[albumName]->Artist = "VA";
+        if (this->mAlbumMap[albumId]->Artist != mediaFile->Artist) {
+            this->mAlbumMap[albumId]->Artist = "--VA--";
         }
     }
     this->libraryDirty = true;
 }
 
 void MediaLibrary::removeFromAlbum(MediaFile* mediaFile) {
-    std::string albumName = mediaFile->Album;
-    if (this->mAlbumMap.find(albumName) != this->mAlbumMap.end()) {
+    std::string albumArtist = mediaFile->MetaData.find("ALBUM ARTIST") != mediaFile->MetaData.end()? mediaFile->MetaData["ALBUM ARTIST"] : mediaFile->Artist;
+    std::string albumId = mediaFile->Album + " - " + albumArtist;
+    if (this->mAlbumMap.find(albumId) != this->mAlbumMap.end()) {
         //this->mAlbumMap[albumName]->Length -= mediaFile->Length;
-        this->mAlbumMap[albumName]->MediaFiles.erase(std::remove(this->mAlbumMap[albumName]->MediaFiles.begin(), this->mAlbumMap[albumName]->MediaFiles.end(), mediaFile), this->mAlbumMap[albumName]->MediaFiles.end());
-        if (this->mAlbumMap[albumName]->MediaFiles.size() == 0) {
-            this->mAlbumMap.erase(albumName);
-            this->mAlbumCount--;
+        this->mAlbumMap[albumId]->MediaFiles.erase(std::remove(this->mAlbumMap[albumId]->MediaFiles.begin(), this->mAlbumMap[albumId]->MediaFiles.end(), mediaFile), this->mAlbumMap[albumId]->MediaFiles.end());
+        if (this->mAlbumMap[albumId]->MediaFiles.size() == 0) {
+            this->mAlbumMap.erase(albumId);
         }
     }
     this->libraryDirty = true;
@@ -155,12 +186,10 @@ void MediaLibrary::loadCovers() {
     int size = deadbeef->conf_get_int(ML_ICON_SIZE, 128);
     for (auto mediaFile : this->mMediaFiles) {
         mediaFile->Cover->regeneratePixbuf(size);
-        this->mMediaFileCount++;
 
     }
     for (auto album : this->mAlbumMap) {
         album.second->Cover->regeneratePixbuf(size);
-        this->mAlbumCount++;
     }
 }
 

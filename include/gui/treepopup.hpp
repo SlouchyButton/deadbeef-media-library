@@ -50,6 +50,7 @@ private:
     void popup_enter_directory();
     void popup_go_up();
     void popup_refresh();
+    void popup_metadata();
 
     /**
      * Adds to playlist files or folders.

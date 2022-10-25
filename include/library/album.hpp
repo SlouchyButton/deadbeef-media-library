@@ -4,13 +4,12 @@
 #include "mediafile.hpp"
 #include "coverimage.hpp"
 
-//class MediaFile;
-
 class Album {
 public:
     Album();
     ~Album();
 
+    std::string Id;
     std::string Name;
     std::string Artist;
     std::string Genre;
@@ -21,7 +20,7 @@ public:
     
     template<class Archive>
     void serialize(Archive &a, const unsigned version){
-        a & Name & Artist & Genre & Year & Length & MediaFiles & Cover;
+        a & Id & Name & Artist & Genre & Year & Length & MediaFiles & Cover;
     }
 private:
 };
