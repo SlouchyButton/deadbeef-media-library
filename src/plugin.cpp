@@ -21,7 +21,7 @@ DB_plugin_t* ddb_misc_media_library_load(DB_functions_t* api) {
     plugin.plugin.api_vmajor = 1;
     plugin.plugin.api_vminor = 15;
     plugin.plugin.version_major = 0;
-    plugin.plugin.version_minor = 3;
+    plugin.plugin.version_minor = 6;
     plugin.plugin.id = "media-library";
     plugin.plugin.name = "Media Library";
     plugin.plugin.descr = "Media Library plugin";

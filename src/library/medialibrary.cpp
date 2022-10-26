@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <sys/stat.h>
 #include <unistd.h>
+#include "utils.hpp"
 
 #include <iostream>
 #include "plugin.hpp"
@@ -135,18 +136,39 @@ void MediaLibrary::clearLibrary() {
 
 void MediaLibrary::addAlbum(MediaFile* mediaFile) {
     std::string albumId = mediaFile->Album;
-    std::string albumArtist = mediaFile->Artist;
+    std::string albumArtist = mediaFile->Artists[0];
+    std::cout << "Artists for " << mediaFile->Title << ": " << mediaFile->Artists.size() << std::endl;
+    for (auto &artist : mediaFile->Artists) {
+        std::cout << artist << "|";
+    }
+    std::cout << std::endl;
     bool albumExists = false;
     if (mediaFile->MetaData.find("ALBUM ARTIST") != mediaFile->MetaData.end()) {
         albumArtist = mediaFile->MetaData["ALBUM ARTIST"];
         albumId = mediaFile->Album + " - " + albumArtist;
         albumExists = !(this->mAlbumMap.find(albumId) == this->mAlbumMap.end());
     } else {
-        albumId = mediaFile->Album + " - " + mediaFile->Cover->hash;
-        albumExists = !(this->mAlbumMap.find(albumId) == this->mAlbumMap.end());
+        albumId = mediaFile->Album + " - " + albumArtist;
+
+        if (this->mAlbumMap.find(albumId) != this->mAlbumMap.end()) {
+            albumExists = true;
+        }
     }
+
+    //try to lookup album with same cover art and name
+    if (!albumExists) {
+        for (auto &album : this->mAlbumMap) {
+            if (album.second->Cover->hash == mediaFile->Cover->hash && album.second->Name == mediaFile->Album) {
+                albumExists = true;
+                albumId = album.second->Id;
+                break;
+            }
+        }
+    }
+    
     if (!albumExists) {
         Album* album = new Album();
+        album->Id = albumId;
         album->Name = mediaFile->Album;
         album->Artist = albumArtist;
         album->Genre = mediaFile->Genre;
@@ -154,7 +176,7 @@ void MediaLibrary::addAlbum(MediaFile* mediaFile) {
         album->Length = mediaFile->Length;
         album->MediaFiles.push_back(mediaFile);
 
-        album->Cover = new CoverImage(mediaFile->Cover->data, deadbeef->conf_get_int(ML_ICON_SIZE, 32));
+        album->Cover = mediaFile->Cover;
 
         this->mAlbumMap[albumId] = album;
 
@@ -162,7 +184,7 @@ void MediaLibrary::addAlbum(MediaFile* mediaFile) {
         this->mAlbumMap[albumId]->Length = mediaFile->Length;
         this->mAlbumMap[albumId]->MediaFiles.push_back(mediaFile);
 
-        if (this->mAlbumMap[albumId]->Artist != mediaFile->Artist) {
+        if (this->mAlbumMap[albumId]->Artist != albumArtist) {
             this->mAlbumMap[albumId]->Artist = "--VA--";
         }
     }

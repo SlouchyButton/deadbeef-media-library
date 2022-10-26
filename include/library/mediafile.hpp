@@ -16,6 +16,7 @@ public:
     std::string Path;
     std::string Title;
     std::string Artist;
+    std::vector<std::string> Artists;
     std::string Album;
     std::string Genre;
     std::string Year;
@@ -28,7 +29,7 @@ public:
 
     template<class Archive>
     void serialize(Archive &a, const unsigned version){
-        a & Path & Title & Artist & Album & Genre & Year & Length & FileFormat & MetaData & Cover;
+        a & Path & Title & Artists & Album & Genre & Year & Length & FileFormat & MetaData & Cover;
     }
 
 private:

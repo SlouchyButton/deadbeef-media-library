@@ -17,7 +17,18 @@ MediaFile::MediaFile(std::filesystem::path path) {
         TagLib::Tag *tag = f.tag();
         this->Title = tag->title().isEmpty()? path.filename().string() : tag->title().toCString(true);
         this->Artist = tag->artist().isEmpty()? "Unknown artist" : tag->artist().toCString(true);
-        this->Album = tag->album().isEmpty()? folderName : tag->album().toCString(true);
+        
+        TagLib::PropertyMap properties = f.file()->properties();
+        TagLib::StringList artists = properties["ARTIST"];
+        if (artists.isEmpty()) {
+            this->Artists.push_back("Unknown Artist");
+        } else {
+            for (auto &artist : artists) {
+                this->Artists.push_back(artist.toCString(true));
+            }
+        }
+
+        this->Album = tag->album().isEmpty()? "--" + folderName + "--" : tag->album().toCString(true);
         this->Genre = tag->genre().isEmpty()? "Unkown genre" : tag->genre().toCString(true);
         this->Year = tag->year() == 0? "Unkown year" : std::to_string(tag->year());
         this->FileFormat = path.extension().c_str();
@@ -27,7 +38,7 @@ MediaFile::MediaFile(std::filesystem::path path) {
     } else {
         this->Title = path.filename().string();
         this->Artist = "Unknown artist";
-        this->Album = folderName;
+        this->Album = "--" + folderName + "--";
         this->Genre = "Unknown genre";
         this->Year = "Unknown year";
         this->Length = "Unknown length";

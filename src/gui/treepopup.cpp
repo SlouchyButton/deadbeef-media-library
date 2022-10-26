@@ -144,6 +144,7 @@ void TreePopup::popup_metadata() {
     Gtk::TreeModel::iterator iter = this->mModel->get_iter(this->mPath);
     const Gtk::TreeRow row = *iter;
     Album* album = row[mModelColumns.mColumnAlbumPointer];
+    std::cout << "Album ID: " << album->Id << std::endl;
     for (auto &file : album->MediaFiles) {
         for (auto &tag : file->MetaData) {
             std::cout << tag.first << ": " << tag.second << std::endl;

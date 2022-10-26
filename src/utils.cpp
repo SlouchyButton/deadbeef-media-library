@@ -61,3 +61,24 @@ std::vector<std::string> Utils::createValidExtensions() {
     }
     return extensions;
 }
+
+//Untested
+std::vector<std::string> Utils::splitString(std::string str, std::string delimiter) {
+    std::vector<std::string> result;
+    
+    std::string substring = str;
+    std::size_t pos = str.find(delimiter);
+
+    if (pos == std::string::npos) {
+        result.push_back(substring);
+        return result;
+    }
+
+    while (pos != std::string::npos) {
+        substring = substring.substr(0, pos);
+        result.push_back(substring);
+        pos = substring.find(delimiter);
+    }
+    
+    return result;
+}
