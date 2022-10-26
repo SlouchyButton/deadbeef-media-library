@@ -137,11 +137,6 @@ void MediaLibrary::clearLibrary() {
 void MediaLibrary::addAlbum(MediaFile* mediaFile) {
     std::string albumId = mediaFile->Album;
     std::string albumArtist = mediaFile->Artists[0];
-    std::cout << "Artists for " << mediaFile->Title << ": " << mediaFile->Artists.size() << std::endl;
-    for (auto &artist : mediaFile->Artists) {
-        std::cout << artist << "|";
-    }
-    std::cout << std::endl;
     bool albumExists = false;
     if (mediaFile->MetaData.find("ALBUM ARTIST") != mediaFile->MetaData.end()) {
         albumArtist = mediaFile->MetaData["ALBUM ARTIST"];
