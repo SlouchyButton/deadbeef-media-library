@@ -337,13 +337,13 @@ void LibraryController::stopMaintenanceThread() {
     }
 }
 
-float LibraryController::getImportProgress() const {
+double LibraryController::getImportProgress() const {
     return this->mImportProgress;
 }
 bool LibraryController::getImportStatus() const {
     return this->mImportStatus;
 }
-float LibraryController::getMaintenanceProgress() const {
+double LibraryController::getMaintenanceProgress() const {
     return this->mMaintenanceProgress;
 }
 bool LibraryController::getMaintenanceStatus() const {

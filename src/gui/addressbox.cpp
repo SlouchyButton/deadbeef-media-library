@@ -39,7 +39,7 @@ void Addressbox::initialize(MediaLibrary* mediaLibrary, LibraryController* libra
     this->mSearchbar.setTreeModelFilter(this->mFilebrowserFilter);
 }
 
-void Addressbox::updateProgress(bool status, float progress, std::string stats) {
+void Addressbox::updateProgress(bool status, double progress, std::string stats) {
     if (status == false) {
         if (this->mStatus == true) {
             this->mRefreshButton.set_image(*Gtk::manage(new Gtk::Image(Utils::getIconByName("view-refresh", 16))));
@@ -51,7 +51,9 @@ void Addressbox::updateProgress(bool status, float progress, std::string stats) 
             this->mStatus = true;
         }
     }
-    this->mSearchbar.set_progress_fraction(progress);
+    if (this->mSearchbar.get_progress_fraction() != progress) {
+        this->mSearchbar.set_progress_fraction(progress);
+    }
     this->mProgressLabel.set_text(stats);
 }
 

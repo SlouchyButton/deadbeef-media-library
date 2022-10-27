@@ -15,7 +15,7 @@ public:
     void setTreeFilebrowser(TreeFilebrowser* newTreeFilebrowser);
     void initialize(MediaLibrary* mediaLibrary, LibraryController* libraryController, SettingsWindow* settingsWindow, FilebrowserFilter* filter);
 
-    void updateProgress(bool status, float progress, std::string stats);
+    void updateProgress(bool status, double progress, std::string stats);
     
     void on_go_button_click();
     void on_settings_button_click();
