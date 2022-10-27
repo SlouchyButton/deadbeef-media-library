@@ -28,7 +28,13 @@ void LibraryController::initialize(Glib::RefPtr<Gtk::ListStore> listStorePtr) {
     this->mListStore = listStorePtr;
 
     std::string dbLibraryPath = deadbeef->get_system_dir(DDB_SYS_DIR_CACHE);
-    this->mLibraryPath = dbLibraryPath + "/media-library/library.bin";
+    dbLibraryPath += "/media-library";
+    
+    if (!std::filesystem::exists(dbLibraryPath)) {
+        std::filesystem::create_directories(dbLibraryPath);
+    }
+
+    this->mLibraryPath = dbLibraryPath + "/library.bin";
 
     pluginLog(2, "Library Controller - Starting maintenance thread");
     this->mMaintenanceThread = new std::thread(&LibraryController::maintenanceThread, this);
