@@ -26,9 +26,9 @@ public:
     void startMaintenanceThread();
     void stopMaintenanceThread();
 
-    float getImportProgress() const;
+    double getImportProgress() const;
     bool getImportStatus() const;
-    float getMaintenanceProgress() const;
+    double getMaintenanceProgress() const;
     bool getMaintenanceStatus() const;
 
     void addCallback(std::function<void()> callback);
@@ -50,9 +50,9 @@ private:
     std::atomic<bool> mImportThreadRun = true;
     std::atomic<bool> mMaintenanceThreadRun = true;
 
-    std::atomic<float> mImportProgress = 0;
+    std::atomic<double> mImportProgress = 0;
     std::atomic<bool> mImportStatus = false;
-    std::atomic<float> mMaintenanceProgress = 0;
+    std::atomic<double> mMaintenanceProgress = 0;
     std::atomic<bool> mMaintenanceStatus = false;
 
     std::atomic<bool> mImportPending = false;

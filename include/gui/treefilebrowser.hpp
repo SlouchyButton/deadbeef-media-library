@@ -22,7 +22,7 @@ public:
     void refreshThread();
     void stopThread();
 
-    void getProgress(float* progress) const;
+    void getProgress(double* progress) const;
 
     /**
      * Sets new root directory and refreshes tree.
@@ -58,7 +58,7 @@ private:
 
     float progressCount = 0;
     float progressIteration = 1;
-    std::atomic<float> threadProgress = 0;
+    std::atomic<double> threadProgress = 0;
     std::atomic<bool> forceRefresh = false;
     
 

@@ -103,7 +103,7 @@ void SettingsWindow::updatePaths(std::list<std::filesystem::path> paths) {
     }
 }
 
-void SettingsWindow::updateProgress(bool status, float progress, std::string stats) {
+void SettingsWindow::updateProgress(bool status, double progress, std::string stats) {
     if (status == false) {
         if (this->mStatus == true) {
             this->mImportButton.set_label("Import");
@@ -117,7 +117,9 @@ void SettingsWindow::updateProgress(bool status, float progress, std::string sta
             this->mStatus = true;
         }
     }
-    this->mProgressBar.set_fraction(progress);
+    if (this->mProgressBar.get_fraction() != progress) {
+        this->mProgressBar.set_fraction(progress);
+    }
     this->mProgressLabel.set_text(stats);
 }
 

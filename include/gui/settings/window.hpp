@@ -14,7 +14,7 @@ public:
 
     void updatePaths(std::list<std::filesystem::path> paths);
 
-    void updateProgress(bool status, float progress, std::string stats);
+    void updateProgress(bool status, double progress, std::string stats);
 
 protected:
     Gtk::FileChooserButton mFileChooserButton;
