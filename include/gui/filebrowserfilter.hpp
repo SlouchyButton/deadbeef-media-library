@@ -12,6 +12,7 @@ public:
     ~FilebrowserFilter();
     static Glib::RefPtr<FilebrowserFilter> create(Glib::RefPtr<Gtk::ListStore> treefb);
     void setNeedle(std::string newNeedle);
+    std::string getNeedle();
     void setModel(TreeFilebrowser* treefb);
 private:
     std::string mNeedle;

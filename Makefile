@@ -52,6 +52,9 @@ $(BUILD_DIR)/%.cpp.o: %.cpp
 	mkdir -p $(dir $@)
 	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $< -o $@
 
+.PHONY: all
+all:
+	make
 
 .PHONY: clean
 clean:

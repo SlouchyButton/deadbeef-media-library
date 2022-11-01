@@ -61,9 +61,12 @@ void Container::onNotify() {
     if (workersDone) {
         if (!doneNotify) {
             pluginLog(2, "Container - Workers done, setting model");
+            std::string currentSearch = this->mFilebrowserFilter->getNeedle();
+            this->mFilebrowserFilter->setNeedle("");
             this->mIconView.unset_model();
             this->mLibraryController.refreshModel();
             this->mIconView.set_model(this->mFilebrowserFilter);
+            this->mFilebrowserFilter->setNeedle(currentSearch);
             if (!this->mTreePopup.getCurrentPath().empty()) {
                 this->mIconView.select_path(this->mTreePopup.getCurrentPath());
                 this->mIconView.scroll_to_path(this->mTreePopup.getCurrentPath(), true, 0.5, 0.5);

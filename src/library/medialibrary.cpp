@@ -37,6 +37,11 @@ std::vector<Album*> MediaLibrary::getAlbums() {
     for (auto &album : this->mAlbumMap) {
         albums.push_back(album.second);
     }
+
+    std::sort(albums.begin(), albums.end(), [](Album* a, Album* b) { 
+        return a->Name < b->Name; 
+    });
+    
     return albums;
 }
 
