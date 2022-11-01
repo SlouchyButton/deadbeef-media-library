@@ -1,9 +1,21 @@
 {
     "tasks": [
         {
-            "label": "build debug meson",
+            "label": "debug",
             "type": "shell",
-            "command": "meson build --buildtype=debug && cd build && ninja && cp /home/slouchy/Documents/Git/deadbeef-media-library/build/src/libddb_misc_media_library.so /home/slouchy/.local/lib/deadbeef/ddb_misc_media_library.so"
+            "command": "meson build --buildtype=debug && cd build && ninja && cp ${workspaceFolder}/build/src/libddb_misc_media_library.so ~/.local/lib/deadbeef/ddb_misc_media_library.so",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": false
+            }
         }
     ],
     "version": "2.0.0"

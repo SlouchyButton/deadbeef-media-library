@@ -23,7 +23,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "build debug meson"
+            "preLaunchTask": "debug"
         }
     ]
 }
