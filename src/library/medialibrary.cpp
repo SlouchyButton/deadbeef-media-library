@@ -64,6 +64,18 @@ void MediaLibrary::addMediaFile(std::filesystem::path path) {
     }
 }
 
+void MediaLibrary::refreshMediaFile(std::filesystem::path path) {
+    if (this->mMediaFilesMap.find(path) != this->mMediaFilesMap.end()) {
+        MediaFile* mediaFile = this->mMediaFilesMap[path];
+        int64_t newModifiedTime = std::chrono::duration_cast<std::chrono::seconds>(std::filesystem::last_write_time(path).time_since_epoch()).count();
+        if (newModifiedTime == mediaFile->LastModified) {
+            return;
+        }
+        this->removeMediaFile(mediaFile);
+    }
+    this->addMediaFile(path);
+}
+
 void MediaLibrary::removeMediaFile(MediaFile* mediaFile) {
     if (this->mMediaFilesMap.find(mediaFile->Path) != this->mMediaFilesMap.end()) {
         this->removeFromAlbum(mediaFile);
@@ -113,16 +125,22 @@ void MediaLibrary::sortMediaFiles() {
             int aTrackNumber = 0;
             int bTrackNumber = 0;
 
-            try {
-                aTrackNumber = std::stoi(a->MetaData["TRACKNUMBER"]);
-            } catch (std::invalid_argument& e) {
-                pluginLog(1, "Track " + a->Title + " has invalid track number '" + a->MetaData["TRACKNUMBER"] + "' (in album " + a->Album + ")");
+            if (a->MetaData["TRACKNUMBER"] != "") {
+                try {
+                    aTrackNumber = std::stoi(a->MetaData["TRACKNUMBER"]);
+                } catch (std::invalid_argument& e) {
+                    pluginLog(1, "Track " + a->Title + " has invalid track number '" + a->MetaData["TRACKNUMBER"] + "' (in album " + a->Album + ")");
+                }
             }
-            try {
-                bTrackNumber = std::stoi(b->MetaData["TRACKNUMBER"]);
-            } catch (std::invalid_argument& e) {
-                pluginLog(1, "Track " + b->Title + " has invalid track number '" + b->MetaData["TRACKNUMBER"] + "' (in album " + b->Album + ")");
+            
+            if (b->MetaData["TRACKNUMBER"] != "") {
+                try {
+                    bTrackNumber = std::stoi(b->MetaData["TRACKNUMBER"]);
+                } catch (std::invalid_argument& e) {
+                    pluginLog(1, "Track " + b->Title + " has invalid track number '" + b->MetaData["TRACKNUMBER"] + "' (in album " + b->Album + ")");
+                }
             }
+            
             return aTrackNumber < bTrackNumber;
         });
     }
@@ -188,17 +206,18 @@ void MediaLibrary::addAlbum(MediaFile* mediaFile) {
             this->mAlbumMap[albumId]->Artist = "--VA--";
         }
     }
+
+    mediaFile->AlbumID = albumId;
+
     this->libraryDirty = true;
 }
 
 void MediaLibrary::removeFromAlbum(MediaFile* mediaFile) {
-    std::string albumArtist = mediaFile->MetaData.find("ALBUM ARTIST") != mediaFile->MetaData.end()? mediaFile->MetaData["ALBUM ARTIST"] : mediaFile->Artist;
-    std::string albumId = mediaFile->Album + " - " + albumArtist;
-    if (this->mAlbumMap.find(albumId) != this->mAlbumMap.end()) {
+    if (this->mAlbumMap.find(mediaFile->AlbumID) != this->mAlbumMap.end()) {
         //this->mAlbumMap[albumName]->Length -= mediaFile->Length;
-        this->mAlbumMap[albumId]->MediaFiles.erase(std::remove(this->mAlbumMap[albumId]->MediaFiles.begin(), this->mAlbumMap[albumId]->MediaFiles.end(), mediaFile), this->mAlbumMap[albumId]->MediaFiles.end());
-        if (this->mAlbumMap[albumId]->MediaFiles.size() == 0) {
-            this->mAlbumMap.erase(albumId);
+        this->mAlbumMap[mediaFile->AlbumID]->MediaFiles.erase(std::remove(this->mAlbumMap[mediaFile->AlbumID]->MediaFiles.begin(), this->mAlbumMap[mediaFile->AlbumID]->MediaFiles.end(), mediaFile), this->mAlbumMap[mediaFile->AlbumID]->MediaFiles.end());
+        if (this->mAlbumMap[mediaFile->AlbumID]->MediaFiles.size() == 0) {
+            this->mAlbumMap.erase(mediaFile->AlbumID);
         }
     }
     this->libraryDirty = true;

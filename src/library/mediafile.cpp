@@ -53,6 +53,12 @@ MediaFile::MediaFile(std::filesystem::path path) {
     }
 
     this->Path = path;
+    try {
+        this->LastModified = std::chrono::duration_cast<std::chrono::seconds>(std::filesystem::last_write_time(path).time_since_epoch()).count();
+    } catch (std::filesystem::filesystem_error &e) {
+        pluginLog(1, "Error while getting last modified time of file: " + path.string() + " Exception: " + e.what());
+        this->LastModified = 0;
+    }
     this->Cover = new CoverImage(path, deadbeef->conf_get_int(ML_ICON_SIZE, 32));
 }
 

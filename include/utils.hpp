@@ -29,8 +29,13 @@ public:
      * 
      * @return Vector of all supported extensions
      */
-    static std::vector<std::string> createValidExtensions();
+    static std::unordered_map<std::string, int> createValidExtensions();
 
+    /**
+     * Split string by delimiter. NOTE: Not tested.
+     *
+     * @return  std::vector    Vector of strings
+     */
     static std::vector<std::string> splitString(std::string str, std::string delimiter);
 private:
     Utils();

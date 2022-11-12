@@ -45,8 +45,8 @@ Glib::RefPtr<Gdk::Pixbuf> Utils::getIconByName(const char* name, uint size, bool
     }
 }
 
-std::vector<std::string> Utils::createValidExtensions() {
-    std::vector<std::string> extensions;
+std::unordered_map<std::string, int> Utils::createValidExtensions() {
+    std::unordered_map<std::string, int> extensions;
 
     // Array
     struct DB_decoder_s **decoders = deadbeef->plug_get_decoder_list();
@@ -56,7 +56,7 @@ std::vector<std::string> Utils::createValidExtensions() {
             // Does anybody use this ridicilously long extensions?
             GString *buf = g_string_sized_new(32);
             g_string_append_printf(buf, ".%s", exts[j]);
-            extensions.push_back(buf->str);
+            extensions[buf->str] = 1;
         }
     }
     return extensions;

@@ -25,12 +25,15 @@ Currently works:
 - Double click the album to load the album tracks into currently selected playlist
 - Saves the loaded metadata, files and cover arts into cache for quicker startup next time
 - Custom config dialog that would be more versatile for showing loaded files and doing imports
+- *Automatically detect changes* in media library paths and automatically import or remove files
+- *Plugin currently only supports Linux.* This is mainly due to using inotify for automatic refresh (and some UNIX only filesystem operations)
 
 Planned features:
 
 - Select metadata for grouping into icon view (show artists instead of albums for example)
 - Select which metadata should be shown in icon view together with the picture
 - Context menu containing quality of life tools (like showing dialog with songs in album, metadata etc.) (Partially)
+- Windows support (ideally and eventually MacOS, but that is not possible in near future for multiple reasons)
 - *See issues on github for more planned features and discussion*
 
 Keep in mind that this plugin is very early in development.

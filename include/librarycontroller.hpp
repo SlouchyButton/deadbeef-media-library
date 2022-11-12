@@ -5,7 +5,9 @@
 #include <atomic>
 #include <memory>
 #include <mutex>
+#include <queue>
 #include <condition_variable>
+#include <chrono>
 
 #include "medialibrary.hpp"
 #include "modelcolumns.hpp"
@@ -56,11 +58,17 @@ private:
     std::atomic<bool> mMaintenanceStatus = false;
 
     std::atomic<bool> mImportPending = false;
+    std::queue<std::filesystem::path> mImportQueue;
+    std::queue<std::filesystem::path> mDeleteQueue;
+    std::map<std::filesystem::path, std::chrono::time_point<std::chrono::steady_clock>> mRefreshQueue;
+    std::mutex mRefreshQueueMutex;
+
 
     std::condition_variable mMaintenanceCtrl;
     std::mutex mMaintenanceMutex;
 
     std::map<std::filesystem::path, int> watchDescriptors;
+    std::map<int, std::filesystem::path> watchDescriptorsPath;
     int fd;
 
     std::vector<std::function<void()>> mCallbacks;

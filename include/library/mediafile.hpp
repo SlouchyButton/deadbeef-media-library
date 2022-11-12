@@ -22,14 +22,17 @@ public:
     std::string Year;
     std::string Length;
     std::string FileFormat;
+    time_t LastModified;
     CoverImage* Cover;
     std::hash<std::string> hash;
+
+    std::string AlbumID;
     
     std::map<std::string, std::string> MetaData;
 
     template<class Archive>
     void serialize(Archive &a, const unsigned version){
-        a & Path & Title & Artists & Album & Genre & Year & Length & FileFormat & MetaData & Cover;
+        a & Path & Title & Artists & Album & Genre & Year & Length & FileFormat & LastModified & Cover & AlbumID & MetaData;
     }
 
 private:

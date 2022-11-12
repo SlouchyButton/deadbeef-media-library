@@ -146,6 +146,7 @@ void TreePopup::popup_metadata() {
     Album* album = row[mModelColumns.mColumnAlbumPointer];
     std::cout << "Album ID: " << album->Id << std::endl;
     for (auto &file : album->MediaFiles) {
+        std::cout << "Modified: " << file->LastModified << std::endl;
         for (auto &tag : file->MetaData) {
             std::cout << tag.first << ": " << tag.second << std::endl;
         }

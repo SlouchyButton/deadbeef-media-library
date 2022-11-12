@@ -40,6 +40,9 @@ ddb_gtkui_widget_t* Controller::guiPluginConnect() {
 }
 
 int Controller::guiPluginDisconnect() {
+    if (Controller::container) {
+        delete Controller::container;
+    }
     Controller::gtkui_plugin = nullptr;
     Controller::container = nullptr;
 

@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <vector>
 #include <string>
+#include <unordered_map>
 
 class Filebrowser {
 public:
@@ -32,7 +33,7 @@ public:
      * Only files with these extensions get showed.
      * Probably should be filled by Utils::createValidExtensions().
      */
-    static std::vector<std::string> VALID_EXTENSIONS;
+    static std::unordered_map<std::string, int> VALID_EXTENSIONS;
 private:
     Filebrowser();
     virtual ~Filebrowser();

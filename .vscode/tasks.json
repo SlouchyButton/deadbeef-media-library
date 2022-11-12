@@ -14,7 +14,7 @@
                 "focus": true,
                 "panel": "dedicated",
                 "showReuseMessage": false,
-                "clear": false
+                "clear": true
             }
         }
     ],

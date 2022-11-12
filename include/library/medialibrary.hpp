@@ -32,6 +32,8 @@ public:
 
     void addMediaFile(MediaFile* mediaFile);
     void addMediaFile(std::filesystem::path path);
+    //File will be reimported (if it exists - removed and imported again)
+    void refreshMediaFile(std::filesystem::path path);
     void removeMediaFile(MediaFile* mediaFile);
     void removeMediaFile(std::filesystem::path path);
 

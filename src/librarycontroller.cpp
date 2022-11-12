@@ -17,11 +17,19 @@
 #define EVENT_SIZE (sizeof(struct inotify_event))
 #define BUF_LEN (1024 * (EVENT_SIZE + 16))
 
+//TODO: This file is starting to be a chonky boi, maybe split it up into multiple files?
+//Proposal could split each thread into own file, and let this
+//control the whole thing, as the name suggests anyway
+//TODO: With previous proposal, inotify should be own thing anyway, because it will have
+//to be implemented differently on other platforms
+
 LibraryController::LibraryController() {
     this->mMediaLibrary = new MediaLibrary();
 }
 
 LibraryController::~LibraryController() {
+    this->stopImport();
+    this->stopMaintenanceThread();
 }
 
 void LibraryController::initialize(Glib::RefPtr<Gtk::ListStore> listStorePtr) {
@@ -34,7 +42,7 @@ void LibraryController::initialize(Glib::RefPtr<Gtk::ListStore> listStorePtr) {
         std::filesystem::create_directories(dbLibraryPath);
     }
 
-    this->mLibraryPath = dbLibraryPath + "/library.bin";
+    this->mLibraryPath = dbLibraryPath + "/library_1_1.bin";
 
     pluginLog(2, "Library Controller - Starting maintenance thread");
     this->mMaintenanceThread = new std::thread(&LibraryController::maintenanceThread, this);
@@ -96,7 +104,7 @@ void LibraryController::importLibraryThread() {
         if (entry.is_directory() && !std::filesystem::is_empty(entry)) {
             this->importFolder(entry.path());
         } else {
-            this->mMediaLibrary->addMediaFile(entry.path());
+            this->mMediaLibrary->refreshMediaFile(entry.path());
             this->mFoundPaths[entry.path()] = 1;
         }
 
@@ -134,7 +142,7 @@ void LibraryController::importFolder(std::filesystem::path path) {
             if (entry.is_directory() && !std::filesystem::is_empty(entry)) {
                 this->importFolder(entry.path());
             } else {
-                this->mMediaLibrary->addMediaFile(entry.path());
+                this->mMediaLibrary->refreshMediaFile(entry.path());
                 this->mFoundPaths[entry.path()] = 1;
                 this->notifyCallbacks();
             }
@@ -164,14 +172,62 @@ void LibraryController::maintenanceThread() {
     pluginLog(2, "Maintenance Thread - Starting inotify thread");
     this->mInotifyThread = new std::thread(&LibraryController::inotifyThread, this);
 
+    bool skipWait = false;
     while (this->mMaintenanceThreadRun.load()) {
+        skipWait = false;
         if (this->mImportPending.load()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
             this->mImportPending = false;
             this->startImport();
         }
 
-        if (this->mMediaLibrary->libraryDirty && !this->mImportStatus) {
+        if (!this->mImportQueue.empty() || !this->mDeleteQueue.empty() || this->mRefreshQueue.size() > 0) {
+            pluginLog(2, "Maintenance Thread - Queues not empty, starting refresh");
+            this->mMaintenanceStatus = true;
+            this->notifyCallbacks();
+            while (this->mImportQueue.size() > 0) {
+                std::filesystem::path path = this->mImportQueue.front();
+                pluginLog(2, "Maintenance Thread - Importing " + path.string());
+                this->mImportQueue.pop();
+                this->mMediaLibrary->refreshMediaFile(path);
+            }
+
+            if (this->mRefreshQueue.size() > 0) {
+                std::vector<std::filesystem::path> removedPaths = std::vector<std::filesystem::path>();
+                this->mRefreshQueueMutex.lock();
+                for (auto &entry : this->mRefreshQueue) {
+                    if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - entry.second).count() > 3) {
+                        pluginLog(2, "Maintenance Thread - Refreshing " + entry.first.string());
+                        this->mMediaLibrary->refreshMediaFile(entry.first);
+                        removedPaths.push_back(entry.first);
+                    } else {
+                        pluginLog(2, "Maintenance Thread - Skipping refresh of " + entry.first.string() + " because modification might not be finished");
+                        skipWait = true;
+                    }
+                }
+                //Remove all paths that have been refreshed, doing this in previous loop would cause iterator to be invalidated -> segfault
+                for (auto &entry : removedPaths) {
+                    this->mRefreshQueue.erase(entry);
+                }
+                this->mRefreshQueueMutex.unlock();
+            }
+
+            this->mMediaLibrary->sortMediaFiles();
+
+            while (this->mDeleteQueue.size() > 0) {
+                std::filesystem::path path = this->mDeleteQueue.front();
+                pluginLog(2, "Maintenance Thread - Deleting " + path.string());
+                this->mDeleteQueue.pop();
+                this->mMediaLibrary->removeMediaFile(path);
+            }
+            pluginLog(2, "Maintenance Thread - Refresh done");
+            this->mMaintenanceStatus = false;
+            this->notifyCallbacks();
+        }
+
+        //Libraries can be huge and will most likely reside on a SSD, so we don't want to waste write cycles,
+        //if we know that there are ANY updates pending. We save after everythign is done.
+        if (this->mMediaLibrary->libraryDirty && !this->mImportStatus && this->mImportQueue.empty() && this->mDeleteQueue.empty() && this->mRefreshQueue.size() == 0) {
             pluginLog(2, "Maintenance Thread - Library is dirty, saving");
             std::ofstream ofs(this->mLibraryPath, std::ios::binary);
             boost::archive::binary_oarchive oa(ofs);
@@ -180,13 +236,23 @@ void LibraryController::maintenanceThread() {
             pluginLog(2, "Maintenance Thread - Library saved");
         }
 
-        std::unique_lock<std::mutex> l(mMaintenanceMutex);
-        mMaintenanceCtrl.wait_for(l, std::chrono::seconds(10));
+        if (!skipWait) {
+            std::unique_lock<std::mutex> l(mMaintenanceMutex);
+            mMaintenanceCtrl.wait_for(l, std::chrono::seconds(10));
+        } else {
+            //Don't skip entierly, but throttle the loop to sane amount
+            pluginLog(2, "Maintenance Thread - Skipping wait");
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        }
     }
 
     pluginLog(2, "Maintenance Thread - Stopping maintenance thread, requested by user");
-    pluginLog(2, "Maintenance Thread - Waiting for inotify thread to stop");
-    this->mInotifyThread->join();
+    pluginLog(2, "Maintenance Thread - Stopping inotify thread");
+    for (auto &entry : this->watchDescriptors) {
+        inotify_rm_watch(this->fd, entry.second);
+    }
+    close(this->fd);
+    pluginLog(2, "Maintenance Thread - Inotify watch gracefully removed and inotify closed");
     pluginLog(2, "Maintenance Thread - Inotify thread stopped");
     this->mInotifyThread = NULL;
 }
@@ -196,6 +262,7 @@ void LibraryController::inotifyThread() {
     char buffer[BUF_LEN];
     const struct inotify_event *event;
     this->watchDescriptors = std::map<std::filesystem::path, int>();
+    this->watchDescriptorsPath = std::map<int, std::filesystem::path>();
 
     this->fd = inotify_init();
     if (fd < 0) {
@@ -214,6 +281,7 @@ void LibraryController::inotifyThread() {
             return;
         }
         
+        i = 0;
         while (i<length) {
             event = (const struct inotify_event *) &buffer[i];
             if (event->len) {
@@ -221,57 +289,77 @@ void LibraryController::inotifyThread() {
                 eventName << event->name;
                 std::stringstream eventMask;
                 eventMask << event->mask;
-                if (event->mask & IN_CREATE) {
-                    if (event->mask & IN_ISDIR) {
-                        pluginLog(2, "Inotify Thread - The directory " + eventName.str() + " was created.");
-                        this->updateInotifyFolders();
+                std::filesystem::path path = this->watchDescriptorsPath[event->wd] / eventName.str();
+                
+                if (Filebrowser::VALID_EXTENSIONS.find(path.extension()) != Filebrowser::VALID_EXTENSIONS.end() || event->mask & IN_ISDIR) {
+                    if (event->mask & IN_CREATE) {
+                        if (event->mask & IN_ISDIR) {
+                            pluginLog(2, "Inotify Thread - The directory " + (std::string)path + " was created.");
+                            this->updateInotifyFolders();
+                        } else {
+                            pluginLog(2, "Inotify Thread - The file " + (std::string)path + " was created.");
+                            //this->mImportQueue.push(path);
+                            //this->mMaintenanceCtrl.notify_one();
+                            //Use map, because it prevents duplicates
+                            this->mRefreshQueueMutex.lock();
+                            this->mRefreshQueue[path] = std::chrono::steady_clock::now();
+                            this->mRefreshQueueMutex.unlock();
+                            this->mMaintenanceCtrl.notify_one();
+                        }
+                    } else if (event->mask & IN_DELETE) {
+                        if (event->mask & IN_ISDIR) {
+                            pluginLog(2, "Inotify Thread - The directory " + (std::string)path + " was deleted.");
+                            this->updateInotifyFolders();
+                        } else {
+                            pluginLog(2, "Inotify Thread - The file " + (std::string)path + " was deleted.");
+                            this->mDeleteQueue.push(path);
+                            this->mMaintenanceCtrl.notify_one();
+                        }
+                    } else if (event->mask & IN_CLOSE_WRITE) {
+                        pluginLog(2, "Inotify Thread - The file " + (std::string)path + " was closed after being written.");
+                        this->mImportQueue.push(path);
+                        this->mMaintenanceCtrl.notify_one();
+                    } else if (event->mask & IN_MODIFY) {
+                        if (event->mask & IN_ISDIR) {
+                            pluginLog(2, "Inotify Thread - The directory " + (std::string)path + " was modified.");
+                            this->updateInotifyFolders();
+                        } else {
+                            //pluginLog(2, "Inotify Thread - The file " + (std::string)this->watchDescriptorsPath[event->wd] + "/" + eventName.str() + " was modified."); // This spams too much
+                            this->mRefreshQueueMutex.lock();
+                            this->mRefreshQueue[path] = std::chrono::steady_clock::now();
+                            this->mRefreshQueueMutex.unlock();
+                            this->mMaintenanceCtrl.notify_one();
+                        }
+                    } else if (event->mask & IN_MOVED_FROM) {
+                        if (event->mask & IN_ISDIR) {
+                            pluginLog(2, "Inotify Thread - The directory " + (std::string)path + " was moved from.");
+                            this->updateInotifyFolders();
+                        } else {
+                            pluginLog(2, "Inotify Thread - The file " + (std::string)path + " was moved from.");
+                            this->mDeleteQueue.push(path);
+                            this->mMaintenanceCtrl.notify_one();
+                        }
+                    } else if (event->mask & IN_MOVED_TO) {
+                        if (event->mask & IN_ISDIR) {
+                            pluginLog(2, "Inotify Thread - The directory " + (std::string)path + " was moved to.");
+                            this->updateInotifyFolders();
+                        } else {
+                            pluginLog(2, "Inotify Thread - The file " + (std::string)path + " was moved to.");
+                            this->mImportQueue.push(path);
+                            this->mMaintenanceCtrl.notify_one();
+                        }
                     } else {
-                        pluginLog(2, "Inotify Thread - The file " + eventName.str() + " was created.");
-                    }
-                } else if (event->mask & IN_DELETE) {
-                    if (event->mask & IN_ISDIR) {
-                        pluginLog(2, "Inotify Thread - The directory " + eventName.str() + " was deleted.");
-                        this->updateInotifyFolders();
-                    } else {
-                        pluginLog(2, "Inotify Thread - The file " + eventName.str() + " was deleted.");
-                    }
-                } else if (event->mask & IN_MODIFY) {
-                    if (event->mask & IN_ISDIR) {
-                        pluginLog(2, "Inotify Thread - The directory " + eventName.str() + " was modified.");
-                        this->updateInotifyFolders();
-                    } else {
-                        pluginLog(2, "Inotify Thread - The file " + eventName.str() + " was modified.");
-                    }
-                } else if (event->mask & IN_MOVED_FROM) {
-                    if (event->mask & IN_ISDIR) {
-                        pluginLog(2, "Inotify Thread - The directory " + eventName.str() + " was moved from.");
-                        this->updateInotifyFolders();
-                    } else {
-                        pluginLog(2, "Inotify Thread - The file " + eventName.str() + " was moved from.");
-                    }
-                } else if (event->mask & IN_MOVED_TO) {
-                    if (event->mask & IN_ISDIR) {
-                        pluginLog(2, "Inotify Thread - The directory " + eventName.str() + " was moved to.");
-                        this->updateInotifyFolders();
-                    } else {
-                        pluginLog(2, "Inotify Thread - The file " + eventName.str() + " was moved to.");
+                        pluginLog(2, "Inotify Thread - Unknown event " + eventMask.str() + " for " + eventName.str());
                     }
                 } else {
-                    pluginLog(2, "Inotify Thread - Unknown event " + eventMask.str() + " for " + eventName.str());
+                    pluginLog(2, "Inotify Thread - Skipping " + path.string() + " because of invalid file extension");
                 }
             }
             i += EVENT_SIZE + event->len;
         }
-        this->mMaintenanceCtrl.notify_one();
-        this->mImportPending = true;
+        //this->mMaintenanceCtrl.notify_one();
+        //this->mImportPending = true;
     }
-
-    pluginLog(2, "Inotify Thread - Stopping inotify thread, requested by user");
-    for (auto &entry : this->watchDescriptors) {
-        inotify_rm_watch(this->fd, entry.second);
-    }
-    close(this->fd);
-    pluginLog(2, "Inotify Thread - Inotify watch gracefully removed and inotify closed");
 }
 
 void LibraryController::updateInotifyFolders() {
@@ -289,6 +377,7 @@ void LibraryController::updateInotifyFolders() {
                     continue;
                 }
                 this->watchDescriptors[dirPath] = wd;
+                this->watchDescriptorsPath[wd] = dirPath;
             }
         }
     }

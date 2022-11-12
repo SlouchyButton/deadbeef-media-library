@@ -82,4 +82,6 @@ void Container::onNotify() {
 }
 
 Container::~Container() {
+    this->mLibraryController.stopImport();
+    this->mLibraryController.stopMaintenanceThread();
 }

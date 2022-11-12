@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-std::vector<std::string> Filebrowser::VALID_EXTENSIONS = std::vector<std::string>();
+std::unordered_map<std::string, int> Filebrowser::VALID_EXTENSIONS = std::unordered_map<std::string, int>();
 
 std::vector<std::filesystem::directory_entry> Filebrowser::getFileList(std::filesystem::path path, bool sort, bool showHiddenFiles) {
     std::vector<std::filesystem::directory_entry> files = {};
@@ -32,14 +32,7 @@ std::vector<std::filesystem::directory_entry> Filebrowser::getFileList(std::file
         }
 
         // Check file extension
-        bool validFile = false;
-        for (auto &extension : Filebrowser::VALID_EXTENSIONS) {
-            if (entry.path().extension() == extension) {
-                validFile = true;
-                break;
-            }
-        }
-        if (validFile) {
+        if (Filebrowser::VALID_EXTENSIONS.find(entry.path().extension()) != Filebrowser::VALID_EXTENSIONS.end()) {
             files.push_back(entry);
         }
     }
