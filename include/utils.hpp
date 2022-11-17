@@ -6,15 +6,6 @@
 class Utils {
 public:
     /**
-     * Replaces & with &amp; as defined by GTK.
-     * 
-     * @param tooltip String to be cleaned.
-     * 
-     * @return Edited string.
-     */
-    static std::string escapeTooltip(std::string tooltip);
-
-    /**
      * Retrieves local theme's gtk icon by it's name in desired resolution.
      * 
      * @param name Gtk icon name, see icons in Glade or documentation

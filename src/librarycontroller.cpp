@@ -402,7 +402,7 @@ void LibraryController::refreshModel() {
         row[mModelColumns.mColumnTitle] = entry->Name;
         row[mModelColumns.mColumnSubtitle] = entry->Artist;
         row[mModelColumns.mColumnAlbumPointer] = entry;
-        row[mModelColumns.mColumnTooltip] = Utils::escapeTooltip(entry->Name);//+ " - " + entry->Artist;
+        row[mModelColumns.mColumnTooltip] = Glib::Markup::escape_text(entry->Name);
         row[mModelColumns.mColumnVisibility] = true;
     }
 }
