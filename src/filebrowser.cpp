@@ -12,10 +12,6 @@
 #define stat _stat
 #endif
 
-#ifdef _MSC_VER
-#define strcasecmp _stricmp
-#endif
-
 #include <iostream>
 
 std::unordered_map<std::string, int> Filebrowser::VALID_EXTENSIONS = std::unordered_map<std::string, int>();
