@@ -16,9 +16,9 @@ public:
      * 
      * @return Vector of directory entries for path
      */
-    static std::vector<std::filesystem::directory_entry> getFileList(std::filesystem::path path, bool sort, bool showHiddenFiles);
+    static std::vector<std::filesystem::directory_entry> getFileList(std::filesystem::path path, bool sort, bool showHiddenFiles, bool onlyDirectories = false);
 
-    static std::vector<std::filesystem::path> getDirectoryList(std::filesystem::path path, bool sort, bool showHiddenFiles, bool includeItself);
+    static std::vector<std::filesystem::directory_entry> getDirectoryList(std::filesystem::path path, bool sort, bool showHiddenFiles, bool includeItself);
 
     /**
      * @param directory
