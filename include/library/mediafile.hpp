@@ -34,7 +34,4 @@ public:
     void serialize(Archive &a, const unsigned version){
         a & Path & Title & Artists & Album & Genre & Year & Length & FileFormat & LastModified & Cover & AlbumID & MetaData;
     }
-
-private:
-    void loadMetaData();
 };

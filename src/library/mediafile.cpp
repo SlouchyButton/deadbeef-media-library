@@ -8,6 +8,8 @@
 #include "settings.hpp"
 #include "readerfactory.hpp"
 
+MediaFile::MediaFile() { };
+
 MediaFile::MediaFile(std::filesystem::path path) {
     TagLib::FileRef f(path.c_str());
 
@@ -60,9 +62,6 @@ MediaFile::MediaFile(std::filesystem::path path) {
         this->LastModified = 0;
     }
     this->Cover = new CoverImage(path, deadbeef->conf_get_int(ML_ICON_SIZE, 32));
-}
-
-MediaFile::MediaFile() {
 }
 
 MediaFile::~MediaFile() {

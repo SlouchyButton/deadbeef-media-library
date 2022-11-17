@@ -227,7 +227,6 @@ void MediaLibrary::loadCovers() {
     int size = deadbeef->conf_get_int(ML_ICON_SIZE, 128);
     for (auto mediaFile : this->mMediaFiles) {
         mediaFile->Cover->regeneratePixbuf(size);
-
     }
     for (auto album : this->mAlbumMap) {
         album.second->Cover->regeneratePixbuf(size);

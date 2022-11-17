@@ -8,30 +8,14 @@
 #include <iostream>
 #include <fstream>
 
-CoverImage::CoverImage(TagLib::ByteVector tagLibData, int pixBufSize) {
-    this->data = std::vector<char>(tagLibData.begin(), tagLibData.end());
-    
-    this->regeneratePixbuf(pixBufSize);
-}
+CoverImage::CoverImage() { };
 
 CoverImage::CoverImage(std::filesystem::path path, int pixBufSize) {
-    TagLib::ByteVector* tagLibData = ReaderFactory::getImageData(path);
+    this->CoverPixbuf = ReaderFactory::getImage(path, pixBufSize);
 
+    int quality = deadbeef->conf_get_int(ML_ICON_QUALITY, 2);
 
-
-    if (tagLibData) {
-        if (tagLibData->size() > 0) {
-            Glib::RefPtr<Gdk::PixbufLoader> loader = Gdk::PixbufLoader::create();
-            loader->set_size(pixBufSize, pixBufSize);
-            try {
-                loader->write((const unsigned char*)tagLibData->data(), tagLibData->size());
-                loader->close();
-                this->CoverPixbuf = loader->get_pixbuf();
-            } catch (Gdk::PixbufError &e) {
-                pluginLog(1, ("Couldn't load cover from metadata: " + e.what()));
-            }
-        }
-        int quality = deadbeef->conf_get_int(ML_ICON_QUALITY, 2);
+    if (this->CoverPixbuf) {
         gchar* gData = new gchar();
         gsize gSize = 0;
         if (quality == 0) {
@@ -47,35 +31,16 @@ CoverImage::CoverImage(std::filesystem::path path, int pixBufSize) {
                 optionValues = {"50"};
             }
             
-            
             this->CoverPixbuf->save_to_buffer(gData, gSize, "jpeg", optionKeys, optionValues);
         }
 
         this->hash = gSize;
-
         this->data = std::vector<char>(gData, gData + gSize);
-        delete gData;
-        delete tagLibData;
 
+        delete gData;
     } else {
         this->data = std::vector<char>();
-        this->regeneratePixbuf(pixBufSize);
-    }    
-}
-
-CoverImage::CoverImage(std::vector<char> data, int pixBufSize) {
-    this->data = data;
-    
-    this->regeneratePixbuf(pixBufSize);
-}
-
-CoverImage::CoverImage() {
-}
-
-void CoverImage::generatePixbuf(TagLib::ByteVector tagLibData, int pixBufSize) {
-    this->data = std::vector<char>(tagLibData.begin(), tagLibData.end());
-    
-    this->regeneratePixbuf(pixBufSize);
+    }
 }
 
 void CoverImage::regeneratePixbuf(int pixBufSize) {
