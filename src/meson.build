@@ -15,6 +15,7 @@ source_files = files(
     'plugin.cpp',
     'filebrowser.cpp',
     'utils.cpp',
+    'benchmark.cpp',
     'librarycontroller.cpp',
     'gui/settings/window.cpp',
     'gui/settings/pathscolumns.cpp',

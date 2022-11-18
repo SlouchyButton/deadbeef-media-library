@@ -3,6 +3,7 @@
 #include <gtkmm.h>
 #include "settings/pathscolumns.hpp"
 #include "librarycontroller.hpp"
+#include "benchmark.hpp"
 #include <filesystem>
 
 class SettingsWindow : public Gtk::Window {
@@ -31,8 +32,12 @@ protected:
     LibraryController* mController;
     bool mStatus = false;
 
+    Benchmark mBenchmark;
+
     void on_addPath_button_click();
     void on_removePath_button_click();
     void on_import_button_click();
     void on_clean_import_button_click();
+
+    void on_benchmark_button_click();
 };

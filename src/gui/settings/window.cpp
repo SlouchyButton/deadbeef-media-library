@@ -80,6 +80,11 @@ SettingsWindow::SettingsWindow(LibraryController* controller) :
     mButtonBox->pack_start(mImportButton, false, false);
     mButtonBox->pack_start(mCleanImportButton, false, false);
     mButtonBox->pack_start(mRemovePathButton, false, false);
+    
+    Gtk::Button* mBenchmarkButton = new Gtk::Button("Benchmark");
+    mBenchmarkButton->set_margin_top(1); mBenchmarkButton->set_margin_bottom(1); mBenchmarkButton->set_margin_left(1); mBenchmarkButton->set_margin_right(5);
+    mBenchmarkButton->signal_clicked().connect(sigc::mem_fun(*this, &SettingsWindow::on_benchmark_button_click));
+    mButtonBox->pack_start(*mBenchmarkButton, false, false);
 
     mFileSelectBox->pack_start(mFileChooserButton, false, false);
     mFileSelectBox->pack_start(mAddPathButton, false, false);
@@ -91,6 +96,11 @@ SettingsWindow::SettingsWindow(LibraryController* controller) :
     this->add(*mMainBox);
 
     this->show_all_children();
+}
+
+void SettingsWindow::on_benchmark_button_click()
+{
+    this->mBenchmark.fileExtensionDataType();
 }
 
 void SettingsWindow::updatePaths(std::list<std::filesystem::path> paths) {
