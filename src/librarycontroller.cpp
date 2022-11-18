@@ -371,9 +371,9 @@ void LibraryController::updateInotifyFolders() {
         for (auto dirPath : Filebrowser::getDirectoryList(mlPath, false, false, true)) {
             if (this->watchDescriptors.find(dirPath) == this->watchDescriptors.end()) {
                 if (!initial) pluginLog(2, "Inotify Thread - Adding watch for new directory.");
-                int wd = inotify_add_watch(this->fd, dirPath.c_str(), IN_CREATE | IN_DELETE | IN_MODIFY | IN_MOVED_FROM | IN_MOVED_TO);
+                int wd = inotify_add_watch(this->fd, dirPath.path().c_str(), IN_CREATE | IN_DELETE | IN_MODIFY | IN_MOVED_FROM | IN_MOVED_TO);
                 if (wd < 0) {
-                    pluginLog(0, "Inotify Thread - Couldn't add watch for " + dirPath.string());
+                    pluginLog(0, "Inotify Thread - Couldn't add watch for " + dirPath.path().string());
                     continue;
                 }
                 this->watchDescriptors[dirPath] = wd;
