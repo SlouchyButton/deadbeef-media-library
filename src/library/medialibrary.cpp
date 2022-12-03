@@ -32,14 +32,35 @@ std::vector<MediaFile*> MediaLibrary::getMediaFiles(std::string albumName){
     return mediaFiles;
 }
 
+//0-Album name
+//1-Artist name
+//2-Album year
+//3-Album genre
+//Album rating
+//Album play count
+//Album last played
+//4-Album date modified
 std::vector<Album*> MediaLibrary::getAlbums() {
     std::vector<Album*> albums = {};
     for (auto &album : this->mAlbumMap) {
         albums.push_back(album.second);
     }
-
-    std::sort(albums.begin(), albums.end(), [](Album* a, Album* b) { 
-        return a->Name < b->Name; 
+    int sortType = this->mSortType;
+    std::sort(albums.begin(), albums.end(), [&sortType](Album* a, Album* b) {
+        switch (sortType) {
+            case 0:
+                return a->Name < b->Name;
+            case 1:
+                return a->Artist < b->Artist;
+            case 2:
+                return a->Year > b->Year;
+            case 3:
+                return a->Genre < b->Genre;
+            case 4:
+                return a->MediaFiles[0]->LastModified > b->MediaFiles[0]->LastModified;
+            default:
+                return a->Name < b->Name;
+        }
     });
     
     return albums;
@@ -176,7 +197,7 @@ void MediaLibrary::addAlbum(MediaFile* mediaFile) {
     //try to lookup album with same cover art and name
     if (!albumExists) {
         for (auto &album : this->mAlbumMap) {
-            if (album.second->Cover->hash == mediaFile->Cover->hash && album.second->Name == mediaFile->Album) {
+            if (album.second->Cover->data == mediaFile->Cover->data && album.second->Name == mediaFile->Album) {
                 albumExists = true;
                 albumId = album.second->Id;
                 break;
@@ -195,6 +216,8 @@ void MediaLibrary::addAlbum(MediaFile* mediaFile) {
         album->MediaFiles.push_back(mediaFile);
 
         album->Cover = mediaFile->Cover;
+
+        album->DateImported = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
         this->mAlbumMap[albumId] = album;
 

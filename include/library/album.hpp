@@ -17,10 +17,12 @@ public:
     std::string Length;
     CoverImage* Cover;
     std::vector<MediaFile*> MediaFiles;
+    time_t DateImported;
+    //int PlayCount;
     
     template<class Archive>
     void serialize(Archive &a, const unsigned version){
-        a & Id & Name & Artist & Genre & Year & Length & MediaFiles & Cover;
+        a & Id & Name & Artist & Genre & Year & Length & MediaFiles & Cover & DateImported /* & PlayCount*/;
     }
 private:
 };

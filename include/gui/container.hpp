@@ -33,6 +33,7 @@ private:
     Glib::RefPtr<FilebrowserFilter> mFilebrowserFilter;
     Glib::Dispatcher mDispatcher;
     SettingsWindow* mSettingsWindow;
+    Glib::RefPtr<Gtk::TreeModelSort> mTreeModelSort;
 
     bool doneNotify = false;
 

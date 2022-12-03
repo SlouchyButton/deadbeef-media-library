@@ -19,12 +19,14 @@ public:
     
     void on_go_button_click();
     void on_settings_button_click();
+    void on_sort_combo_changed();
 
     Addressbox();
     ~Addressbox();
 private:
     Gtk::Button mRefreshButton;
     Gtk::Button mSettingsButton;
+    Gtk::ComboBoxText mSortCombo;
     Gtk::Label mProgressLabel;
     std::string mAddress;
     Gtk::IconView* mIconView;

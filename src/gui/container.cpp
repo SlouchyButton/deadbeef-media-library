@@ -13,7 +13,7 @@ Container::Container() :
 {
     mDispatcher.connect(sigc::mem_fun(*this, &Container::onNotify));
 
-    this->mTreeFilebrowser = TreeFilebrowser::create();
+    //this->mTreeFilebrowser = TreeFilebrowser::create();
     this->mListStore = Gtk::ListStore::create(mModelColumns);
     this->mFilebrowserFilter = FilebrowserFilter::create(this->mListStore);
     this->mSettingsWindow = new SettingsWindow(&this->mLibraryController);

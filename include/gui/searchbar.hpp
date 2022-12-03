@@ -4,7 +4,7 @@
 
 #include "filebrowserfilter.hpp"
 
-class Searchbar : public Gtk::Entry {
+class Searchbar : public Gtk::SearchEntry {
 public:
     void setTreeModelFilter(FilebrowserFilter* filter);
     Searchbar();

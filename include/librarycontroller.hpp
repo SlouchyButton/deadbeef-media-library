@@ -37,6 +37,8 @@ public:
 
     void refreshModel();
 
+    void setSortType(int sortType);
+
     MediaLibrary* getMediaLibrary();
     MediaLibrary* mMediaLibrary;
 private:
@@ -57,6 +59,7 @@ private:
     std::atomic<double> mMaintenanceProgress = 0;
     std::atomic<bool> mMaintenanceStatus = false;
 
+    std::atomic<bool> mModelRefreshPending = false;
     std::atomic<bool> mImportPending = false;
     std::queue<std::filesystem::path> mImportQueue;
     std::queue<std::filesystem::path> mDeleteQueue;

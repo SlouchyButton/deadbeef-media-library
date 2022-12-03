@@ -48,6 +48,7 @@ public:
 
     void loadCovers();
     bool libraryDirty = false;
+    int mSortType = 0;
 private:
     friend class boost::serialization::access;
     std::vector<MediaFile*> mMediaFiles;
@@ -56,7 +57,7 @@ private:
     std::list<std::string> mPaths;
     template<class Archive>
     void serialize(Archive &a, const unsigned version){
-        a & mMediaFiles & mAlbumMap & mMediaFilesMap & mPaths;
+        a & mMediaFiles & mAlbumMap & mMediaFilesMap & mPaths & mSortType;
     }
     
     void addAlbum(MediaFile* mediaFile);

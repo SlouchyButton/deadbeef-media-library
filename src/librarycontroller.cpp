@@ -42,7 +42,7 @@ void LibraryController::initialize(Glib::RefPtr<Gtk::ListStore> listStorePtr) {
         std::filesystem::create_directories(dbLibraryPath);
     }
 
-    this->mLibraryPath = dbLibraryPath + "/library_1_1.bin";
+    this->mLibraryPath = dbLibraryPath + "/library_1_2.bin";
 
     pluginLog(2, "Library Controller - Starting maintenance thread");
     this->mMaintenanceThread = new std::thread(&LibraryController::maintenanceThread, this);
@@ -179,6 +179,18 @@ void LibraryController::maintenanceThread() {
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
             this->mImportPending = false;
             this->startImport();
+        }
+
+        // TODO: This is a hacky solution, we need a way of refreshing model from controller, without this sleep bullshit
+        if (this->mModelRefreshPending.load()) {
+            pluginLog(2, "Maintenance Thread - Refreshing model");
+            this->mMaintenanceStatus = true;
+            this->notifyCallbacks();
+            this->mModelRefreshPending = false;
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
+            this->mMaintenanceStatus = false;
+            this->notifyCallbacks();
+            pluginLog(2, "Maintenance Thread - Notifying callbacks");
         }
 
         if (!this->mImportQueue.empty() || !this->mDeleteQueue.empty() || this->mRefreshQueue.size() > 0) {
@@ -405,6 +417,12 @@ void LibraryController::refreshModel() {
         row[mModelColumns.mColumnTooltip] = Glib::Markup::escape_text(entry->Name);
         row[mModelColumns.mColumnVisibility] = true;
     }
+}
+
+void LibraryController::setSortType(int sortType) {
+    this->mMediaLibrary->mSortType = sortType;
+    this->mModelRefreshPending = true;
+    this->mMaintenanceCtrl.notify_one();
 }
 
 void LibraryController::stopImport() {

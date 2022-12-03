@@ -100,7 +100,8 @@
         "__tree": "cpp",
         "__tuple": "cpp",
         "locale": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "__hash": "cpp"
     },
     "mesonbuild.configureOnOpen": false,
 }

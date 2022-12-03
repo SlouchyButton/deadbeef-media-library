@@ -3,7 +3,7 @@
         {
             "label": "debug",
             "type": "shell",
-            "command": "meson build --buildtype=debug && cd build && ninja && cp ${workspaceFolder}/build/src/libddb_misc_media_library.so ~/.local/lib/deadbeef/ddb_misc_media_library.so",
+            "command": "meson setup build && meson configure build --buildtype debug && cd build && ninja && cp ${workspaceFolder}/build/src/libddb_misc_media_library.so ~/.local/lib/deadbeef/ddb_misc_media_library.so",
             "problemMatcher": [],
             "group": {
                 "kind": "build",
