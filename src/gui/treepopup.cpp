@@ -147,6 +147,7 @@ void TreePopup::popup_metadata() {
     std::cout << "Album ID: " << album->Id << std::endl;
     for (auto &file : album->MediaFiles) {
         std::cout << "Modified: " << file->LastModified << std::endl;
+        std::cout << "Bitrate: " << file->Bitrate << std::endl;
         for (auto &tag : file->MetaData) {
             std::cout << tag.first << ": " << tag.second << std::endl;
         }

@@ -3,6 +3,7 @@
 #include "filebrowser.hpp"
 #include "utils.hpp"
 #include "plugin.hpp"
+#include "settings.hpp"
 
 #include <fstream>
 #include <boost/archive/binary_oarchive.hpp>
@@ -13,6 +14,9 @@
 #include <sys/inotify.h>
 #include <sys/types.h>
 #include <errno.h>
+
+#include <ctime>
+#include <iomanip>
 
 #define EVENT_SIZE (sizeof(struct inotify_event))
 #define BUF_LEN (1024 * (EVENT_SIZE + 16))
@@ -42,7 +46,7 @@ void LibraryController::initialize(Glib::RefPtr<Gtk::ListStore> listStorePtr) {
         std::filesystem::create_directories(dbLibraryPath);
     }
 
-    this->mLibraryPath = dbLibraryPath + "/library_1_2.bin";
+    this->mLibraryPath = dbLibraryPath + "/library_1_3.bin";
 
     pluginLog(2, "Library Controller - Starting maintenance thread");
     this->mMaintenanceThread = new std::thread(&LibraryController::maintenanceThread, this);
@@ -72,19 +76,29 @@ void LibraryController::importLibraryThread() {
     
     pluginLog(2, "Import Thread - Finding all files in paths");
     int countTotal = 0;
-    std::vector<std::filesystem::directory_entry> directories = std::vector<std::filesystem::directory_entry>();
+    int ignoredCount = 0;
+    this->mIgnoredPaths = this->mMediaLibrary->getIgnoredPaths();
+    std::vector<std::filesystem::directory_entry> directories = 
+        std::vector<std::filesystem::directory_entry>();
     for (auto path : this->mMediaLibrary->getSearchPaths()) {
         pluginLog(2, "Import Thread - Searching path: " + path.string());
-        std::vector<std::filesystem::directory_entry> filelist = Filebrowser::getFileList(path, true, false);
+        std::vector<std::filesystem::directory_entry> filelist = 
+            Filebrowser::getFileList(path, true, false);
         int count = filelist.size();
         if (count > 0) {
             for (auto &entry : filelist) {
+                if (std::find(this->mIgnoredPaths.begin(), this->mIgnoredPaths.end(),
+                                entry.path()) != this->mIgnoredPaths.end()) {
+                    ignoredCount += 1;
+                    continue;
+                }
                 directories.push_back(entry);
             }
             countTotal += count;
         }
     }
-    pluginLog(2, "Import Thread - Found " + std::to_string(countTotal) + " items");
+    pluginLog(2, "Import Thread - Found " + std::to_string(countTotal) + " items and ignored " +
+                    std::to_string(ignoredCount) + " items");
 
     this->mFoundPaths.clear();
 
@@ -140,6 +154,10 @@ void LibraryController::importFolder(std::filesystem::path path) {
             }
 
             if (entry.is_directory() && !std::filesystem::is_empty(entry)) {
+                if (std::find(this->mIgnoredPaths.begin(), this->mIgnoredPaths.end(),
+                                entry.path()) != this->mIgnoredPaths.end()) {
+                    continue;
+                }
                 this->importFolder(entry.path());
             } else {
                 this->mMediaLibrary->refreshMediaFile(entry.path());
@@ -406,15 +424,80 @@ void LibraryController::notifyCallbacks() {
 
 void LibraryController::refreshModel() {
     this->mListStore->clear();
+
+    std::map<char*, Gtk::TreeModelColumn<std::string>*> columnMap = {
+        {(char*)ML_TITLE_COLUMN, &this->mModelColumns.mColumnTitle},
+        {(char*)ML_SUBTITLE_COLUMN, &this->mModelColumns.mColumnSubtitle},
+        {(char*)ML_CUSTOM1_COLUMN, &this->mModelColumns.mColumnCustom1},
+        {(char*)ML_CUSTOM2_COLUMN, &this->mModelColumns.mColumnCustom2},
+        {(char*)ML_CUSTOM3_COLUMN, &this->mModelColumns.mColumnCustom3},
+        {(char*)ML_CUSTOM4_COLUMN, &this->mModelColumns.mColumnCustom4}
+    };
+
     Gtk::TreeModel::iterator iter;
     for (Album* &entry : this->mMediaLibrary->getAlbums()) {
         iter = this->mListStore->append();
         Gtk::TreeModel::Row row = *iter;
+
         row[mModelColumns.mColumnIcon] = entry->Cover->CoverPixbuf;
+        row[mModelColumns.mColumnTooltip] = Glib::Markup::escape_text(entry->Name);
+
+        for (auto &column : columnMap) {
+            int columnConfig = deadbeef->conf_get_int(column.first, 0);
+            std::set<std::string> formats;
+            std::string formatString;
+            std::stringstream dateFormatted;
+            int avgBitrate = 0;
+            switch (columnConfig) {
+                //None Album Artist Genre Year Length Imported Format Bitrate
+                case 1:
+                    row[*column.second] = entry->Name;
+                    break;
+                case 2:
+                    row[*column.second] = entry->Artist;
+                    break;
+                case 3:
+                    row[*column.second] = entry->Genre;
+                    break;
+                case 4:
+                    row[*column.second] = entry->Year;
+                    break;
+                case 5:
+                    row[*column.second] = entry->Length;
+                    break;
+                case 6:
+                    dateFormatted = std::stringstream();
+                    dateFormatted << std::put_time(localtime(&entry->DateImported), "%F");
+                    row[*column.second] = dateFormatted.str();
+                    break;
+                case 7:
+                    formats = {};
+                    for (auto &track : entry->MediaFiles) {
+                        formats.insert(track->FileFormat);
+                    }
+                    formatString = "";
+                    for (auto &format : formats) {
+                        formatString += format + " ";
+                    }
+                    row[*column.second] = formatString;
+                    break;
+                case 8:
+                    avgBitrate = 0;
+                    for (auto &track : entry->MediaFiles) {
+                        avgBitrate += track->Bitrate;
+                    }
+                    avgBitrate /= entry->MediaFiles.size();
+                    row[*column.second] = std::to_string(avgBitrate) + " kbps";
+                    break;
+                default:
+                    row[*column.second] = "";
+                    break;
+            }
+        }
+
         row[mModelColumns.mColumnTitle] = entry->Name;
         row[mModelColumns.mColumnSubtitle] = entry->Artist;
         row[mModelColumns.mColumnAlbumPointer] = entry;
-        row[mModelColumns.mColumnTooltip] = Glib::Markup::escape_text(entry->Name);
         row[mModelColumns.mColumnVisibility] = true;
     }
 }

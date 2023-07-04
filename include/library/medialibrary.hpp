@@ -41,6 +41,10 @@ public:
     void removeSearchPath(std::filesystem::path path);
     std::list<std::filesystem::path> getSearchPaths();
 
+    void addIgnoredPath(std::filesystem::path path);
+    void removeIgnoredPath(std::filesystem::path path);
+    std::list<std::filesystem::path> getIgnoredPaths();
+
     void sortMediaFiles();
     void sortAlbums();
 
@@ -55,9 +59,10 @@ private:
     std::map<std::string, Album*> mAlbumMap;
     std::map<std::string, MediaFile*> mMediaFilesMap;
     std::list<std::string> mPaths;
+    std::list<std::string> mIgnoredPaths;
     template<class Archive>
     void serialize(Archive &a, const unsigned version){
-        a & mMediaFiles & mAlbumMap & mMediaFilesMap & mPaths & mSortType;
+        a & mMediaFiles & mAlbumMap & mMediaFilesMap & mPaths & mIgnoredPaths & mSortType;
     }
     
     void addAlbum(MediaFile* mediaFile);

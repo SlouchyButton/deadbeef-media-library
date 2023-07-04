@@ -1,5 +1,6 @@
 dependencies = [
     dependency('gtkmm-3.0'),
+    dependency('glibmm-2.4'),
     dependency('taglib'),
     dependency('boost', modules : [
         'serialization',

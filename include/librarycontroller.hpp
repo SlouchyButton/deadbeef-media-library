@@ -45,6 +45,7 @@ private:
     ModelColumns mModelColumns;
     Glib::RefPtr<Gtk::ListStore> mListStore;
     std::filesystem::path mLibraryPath;
+    std::list<std::filesystem::path> mIgnoredPaths;
     std::map<std::filesystem::path, int> mFoundPaths;
 
     std::thread* mImportLibraryThread;

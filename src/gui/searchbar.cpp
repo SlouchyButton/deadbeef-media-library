@@ -6,7 +6,7 @@
 
 Searchbar::Searchbar() {
     auto primaryIcon = this->property_primary_icon_pixbuf();
-    primaryIcon = Utils::getIconByName("system-search", 16);
+    primaryIcon = Utils::getIconByName("system-search-symbolic", 16);
 }
 
 void Searchbar::setTreeModelFilter(FilebrowserFilter* filter) {

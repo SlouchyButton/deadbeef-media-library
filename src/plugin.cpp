@@ -8,10 +8,18 @@ static DB_misc_t plugin;
 const char config_dialog[] =
 "property \"Replace playlist\" checkbox " ML_DOUBLECLICK_REPLACE " 1;\n"
 "property \"Log verbosity\" select[4] " ML_LOG_VERBOSITY " 0 Errors Warnings Info Debug;\n"
-"property \"Full library reimport needed for following settings\" label REIMPORTWARN;\n"
+"property \"Clean import needed for following settings to apply fully\" label REIMPORTWARN;\n"
 "property \"Icon size\" entry " ML_ICON_SIZE " 128;\n"
 "property \"Icon quality\" select[4] " ML_ICON_QUALITY " 2 Highest High Medium Low;\n"
-"property \"Highest quality increases memory usage, but has best load time.\nMemory consumption improvement has diminishing returns for qualities lower than Medium.\" label ICONNOTES;\n";
+"property \"Highest quality increases memory usage, but has best load time.\nMemory consumption improvement has diminishing returns for qualities lower than Medium.\" label ICONNOTES;\n"
+"property \"Columns in library.\" label COLUMNS;\n"
+"property \"Title\" select[9] " ML_TITLE_COLUMN " 1 None Album Artist Genre Year Length Imported Format Bitrate;\n"
+"property \"Subtitle\" select[9] " ML_SUBTITLE_COLUMN " 2 None Album Artist Genre Year Length Imported Format Bitrate;\n"
+"property \"Custom 1\" select[9] " ML_CUSTOM1_COLUMN " 0 None Album Artist Genre Year Length Imported Format Bitrate;\n"
+"property \"Custom 2\" select[9] " ML_CUSTOM2_COLUMN " 0 None Album Artist Genre Year Length Imported Format Bitrate;\n"
+"property \"Custom 3\" select[9] " ML_CUSTOM3_COLUMN " 0 None Album Artist Genre Year Length Imported Format Bitrate;\n"
+"property \"Custom 4\" select[9] " ML_CUSTOM4_COLUMN " 0 None Album Artist Genre Year Length Imported Format Bitrate;\n"
+"property \"Import needed when changing value and player restart needed when changing value from None.\" label COLUMNSNOTE;\n";
 
 extern "C" 
 DB_plugin_t* ddb_misc_media_library_load(DB_functions_t* api) {

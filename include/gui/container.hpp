@@ -1,6 +1,7 @@
 #pragma once
 
 #include <gtkmm.h>
+#include <giomm/dbusproxy.h>
 
 #include "treefilebrowser.hpp"
 #include "addressbox.hpp"
@@ -34,6 +35,8 @@ private:
     Glib::Dispatcher mDispatcher;
     SettingsWindow* mSettingsWindow;
     Glib::RefPtr<Gtk::TreeModelSort> mTreeModelSort;
+
+    Glib::RefPtr<Gio::DBus::Proxy> prox;
 
     bool doneNotify = false;
 

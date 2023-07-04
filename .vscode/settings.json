@@ -101,7 +101,9 @@
         "__tuple": "cpp",
         "locale": "cpp",
         "filesystem": "cpp",
-        "__hash": "cpp"
+        "__hash": "cpp",
+        "charconv": "cpp",
+        "format": "cpp"
     },
     "mesonbuild.configureOnOpen": false,
 }

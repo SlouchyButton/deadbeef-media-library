@@ -22,6 +22,7 @@ public:
     std::string Year;
     std::string Length;
     std::string FileFormat;
+    int Bitrate;
     time_t LastModified;
     CoverImage* Cover;
     std::hash<std::string> hash;
@@ -32,6 +33,6 @@ public:
 
     template<class Archive>
     void serialize(Archive &a, const unsigned version){
-        a & Path & Title & Artists & Album & Genre & Year & Length & FileFormat & LastModified & Cover & AlbumID & MetaData;
+        a & Path & Title & Artists & Album & Genre & Year & Length & FileFormat & Bitrate & LastModified & Cover & AlbumID & MetaData;
     }
 };

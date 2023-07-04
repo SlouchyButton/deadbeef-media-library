@@ -5,16 +5,19 @@
 SettingsWindow::SettingsWindow(LibraryController* controller) :
     mFileChooserButton("Choose a folder"),
     mAddPathButton("Add path"),
+    mAddIgnoredPathButton("Add ignored path"),
     mImportButton("Import"),
     mCleanImportButton("Clean import"),
     mRemovePathButton("Remove path"),
+    mRemoveIgnoredPathButton("Remove ignored path"),
     mStatusbar(),
     mProgressBar()
 {
     this->set_default_size(550, 300);
     this->set_title("Library Manager");
 
-    this->mListStore = Gtk::ListStore::create(mModelColumns);
+    this->mPathStore = Gtk::ListStore::create(mModelColumns);
+    this->mIgnoredPathStore = Gtk::ListStore::create(mModelColumns);
 
     this->mController = controller;
 
@@ -22,11 +25,16 @@ SettingsWindow::SettingsWindow(LibraryController* controller) :
     Gtk::Grid* mGrid = new Gtk::Grid();
     Gtk::Box* mButtonBox = new Gtk::Box(Gtk::ORIENTATION_HORIZONTAL);
     Gtk::Box* mFileSelectBox = new Gtk::Box(Gtk::ORIENTATION_HORIZONTAL);
+    Gtk::Box* mPathViewContainer = new Gtk::Box(Gtk::ORIENTATION_HORIZONTAL);
 
     
     this->mPathsView = new Gtk::TreeView();
     this->mPathsView->append_column("Paths", mModelColumns.mColumnPath);
-    mPathsView->set_model(mListStore);
+    this->mPathsView->set_model(this->mPathStore);
+
+    this->mIgnoredPathsView = new Gtk::TreeView();
+    this->mIgnoredPathsView->append_column("Paths", mModelColumns.mColumnPath);
+    this->mIgnoredPathsView->set_model(this->mIgnoredPathStore);
 
     mFileSelectBox->set_halign(Gtk::ALIGN_START);
     mFileSelectBox->set_margin_top(5); mFileSelectBox->set_margin_bottom(5); mFileSelectBox->set_margin_left(5); mFileSelectBox->set_margin_right(5);
@@ -37,8 +45,14 @@ SettingsWindow::SettingsWindow(LibraryController* controller) :
     this->mAddPathButton.set_margin_top(1); this->mAddPathButton.set_margin_bottom(1); this->mAddPathButton.set_margin_left(1); this->mAddPathButton.set_margin_right(1);
     this->mAddPathButton.signal_clicked().connect(sigc::mem_fun(*this, &SettingsWindow::on_addPath_button_click));
 
+    this->mAddIgnoredPathButton.set_margin_top(1); this->mAddIgnoredPathButton.set_margin_bottom(1); this->mAddIgnoredPathButton.set_margin_left(1); this->mAddIgnoredPathButton.set_margin_right(1);
+    this->mAddIgnoredPathButton.signal_clicked().connect(sigc::mem_fun(*this, &SettingsWindow::on_addIgnoredPath_button_click));
+
     this->mRemovePathButton.set_margin_top(1); this->mRemovePathButton.set_margin_bottom(1); this->mRemovePathButton.set_margin_left(1); this->mRemovePathButton.set_margin_right(1);
     this->mRemovePathButton.signal_clicked().connect(sigc::mem_fun(*this, &SettingsWindow::on_removePath_button_click));
+
+    this->mRemoveIgnoredPathButton.set_margin_top(1); this->mRemoveIgnoredPathButton.set_margin_bottom(1); this->mRemoveIgnoredPathButton.set_margin_left(1); this->mRemoveIgnoredPathButton.set_margin_right(1);
+    this->mRemoveIgnoredPathButton.signal_clicked().connect(sigc::mem_fun(*this, &SettingsWindow::on_removeIgnoredPath_button_click));
 
     this->mImportButton.set_margin_top(1); this->mImportButton.set_margin_bottom(1); this->mImportButton.set_margin_left(1); this->mImportButton.set_margin_right(5);
     this->mImportButton.signal_clicked().connect(sigc::mem_fun(*this, &SettingsWindow::on_import_button_click));
@@ -80,12 +94,17 @@ SettingsWindow::SettingsWindow(LibraryController* controller) :
     mButtonBox->pack_start(mImportButton, false, false);
     mButtonBox->pack_start(mCleanImportButton, false, false);
     mButtonBox->pack_start(mRemovePathButton, false, false);
+    mButtonBox->pack_start(mRemoveIgnoredPathButton, false, false);
 
     mFileSelectBox->pack_start(mFileChooserButton, false, false);
     mFileSelectBox->pack_start(mAddPathButton, false, false);
+    mFileSelectBox->pack_start(mAddIgnoredPathButton, false, false);
+
+    mPathViewContainer->pack_start(*mPathsView, true, true);
+    mPathViewContainer->pack_start(*mIgnoredPathsView, true, true);
 
     mGrid->attach(*mFileSelectBox, 0, 0, 2);
-    mGrid->attach(*mPathsView, 0, 1, 2);
+    mGrid->attach(*mPathViewContainer, 0, 1, 2);
     mGrid->attach(*mButtonBox, 0, 2, 2);
     
     this->add(*mMainBox);
@@ -93,11 +112,20 @@ SettingsWindow::SettingsWindow(LibraryController* controller) :
     this->show_all_children();
 }
 
-void SettingsWindow::updatePaths(std::list<std::filesystem::path> paths) {
-    this->mListStore->clear();
+void SettingsWindow::updatePaths() {
+    std::list<std::filesystem::path> paths = this->mController->mMediaLibrary->getSearchPaths();
+    this->mPathStore->clear();
     Gtk::TreeModel::iterator iter;
     for (std::filesystem::path &path : paths) {
-        iter = this->mListStore->append();
+        iter = this->mPathStore->append();
+        Gtk::TreeModel::Row row = *iter;
+        row[mModelColumns.mColumnPath] = path.string();
+    }
+
+    paths = this->mController->mMediaLibrary->getIgnoredPaths();
+    this->mIgnoredPathStore->clear();
+    for (std::filesystem::path &path : paths) {
+        iter = this->mIgnoredPathStore->append();
         Gtk::TreeModel::Row row = *iter;
         row[mModelColumns.mColumnPath] = path.string();
     }
@@ -126,7 +154,13 @@ void SettingsWindow::updateProgress(bool status, double progress, std::string st
 void SettingsWindow::on_addPath_button_click() {
     std::filesystem::path path = this->mFileChooserButton.get_filename();
     this->mController->mMediaLibrary->addSearchPath(path);
-    this->updatePaths(this->mController->mMediaLibrary->getSearchPaths());
+    this->updatePaths();
+}
+
+void SettingsWindow::on_addIgnoredPath_button_click() {
+    std::filesystem::path path = this->mFileChooserButton.get_filename();
+    this->mController->mMediaLibrary->addIgnoredPath(path);
+    this->updatePaths();
 }
 
 void SettingsWindow::on_removePath_button_click() {
@@ -135,7 +169,17 @@ void SettingsWindow::on_removePath_button_click() {
         Gtk::TreeModel::Row row = *iter;
         std::string path = row[mModelColumns.mColumnPath];
         this->mController->mMediaLibrary->removeSearchPath(path);
-        this->updatePaths(this->mController->mMediaLibrary->getSearchPaths());
+        this->updatePaths();
+    }
+}
+
+void SettingsWindow::on_removeIgnoredPath_button_click() {
+    Gtk::TreeModel::iterator iter = this->mIgnoredPathsView->get_selection()->get_selected();
+    if (iter) {
+        Gtk::TreeModel::Row row = *iter;
+        std::string path = row[mModelColumns.mColumnPath];
+        this->mController->mMediaLibrary->removeIgnoredPath(path);
+        this->updatePaths();
     }
 }
 

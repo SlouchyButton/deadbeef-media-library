@@ -34,8 +34,9 @@ MediaFile::MediaFile(std::filesystem::path path) {
         this->Genre = tag->genre().isEmpty()? "Unkown genre" : tag->genre().toCString(true);
         this->Year = tag->year() == 0? "Unkown year" : std::to_string(tag->year());
         this->FileFormat = path.extension().c_str();
-        for (auto &property : tag->properties()) {
-            this->MetaData[property.first.toCString(true)] = property.second.front().toCString(true);
+        for (auto &property : f.file()->properties()) {
+            if (property.second.isEmpty()) continue;
+            this->MetaData[property.first.toCString(true)] = property.second.toString(",").toCString(true);
         }
     } else {
         this->Title = path.filename().string();
@@ -50,6 +51,7 @@ MediaFile::MediaFile(std::filesystem::path path) {
     if(!f.isNull() && f.audioProperties()) {
         TagLib::AudioProperties *properties = f.audioProperties();
         this->Length = properties->length();
+        this->Bitrate = properties->bitrate();
     } else {
         this->Length = "Unknown length";
     }

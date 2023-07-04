@@ -135,6 +135,26 @@ std::list<std::filesystem::path> MediaLibrary::getSearchPaths() {
     return paths;
 }
 
+void MediaLibrary::addIgnoredPath(std::filesystem::path path) {
+    if (std::find(this->mIgnoredPaths.begin(), this->mIgnoredPaths.end(), path) == this->mIgnoredPaths.end()) {
+        this->mIgnoredPaths.push_back(path);
+    }
+    this->libraryDirty = true;
+}
+
+void MediaLibrary::removeIgnoredPath(std::filesystem::path path) {
+    this->mIgnoredPaths.remove(path);
+    this->libraryDirty = true;
+}
+
+std::list<std::filesystem::path> MediaLibrary::getIgnoredPaths() {
+    std::list<std::filesystem::path> paths;
+    for (auto &path : this->mIgnoredPaths) {
+        paths.push_back(std::filesystem::path(path));
+    }
+    return paths;
+}
+
 void MediaLibrary::sortMediaFiles() {
     //sort media files in albums by track number and then by title
     for (auto &album : this->mAlbumMap) {
@@ -182,8 +202,8 @@ void MediaLibrary::addAlbum(MediaFile* mediaFile) {
     std::string albumId = mediaFile->Album;
     std::string albumArtist = mediaFile->Artists[0];
     bool albumExists = false;
-    if (mediaFile->MetaData.find("ALBUM ARTIST") != mediaFile->MetaData.end()) {
-        albumArtist = mediaFile->MetaData["ALBUM ARTIST"];
+    if (mediaFile->MetaData.find("ALBUMARTIST") != mediaFile->MetaData.end()) {
+        albumArtist = mediaFile->MetaData["ALBUMARTIST"];
         albumId = mediaFile->Album + " - " + albumArtist;
         albumExists = !(this->mAlbumMap.find(albumId) == this->mAlbumMap.end());
     } else {

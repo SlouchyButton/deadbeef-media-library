@@ -6,6 +6,8 @@
 #include "addressbox.hpp"
 #include "utils.hpp"
 
+void on_prop_changed(const Glib::ustring& sender_name, const Glib::ustring& signal_name, const Glib::VariantContainerBase& parameters);
+
 Container::Container() :
     mAddressbox(),
     mScrolledWindow(),
@@ -37,7 +39,56 @@ Container::Container() :
     
     Filebrowser::VALID_EXTENSIONS = Utils::createValidExtensions();
 
+    prox = Gio::DBus::Proxy::create_for_bus_sync(Gio::DBus::BusType::BUS_TYPE_SESSION,
+                                "org.freedesktop.portal.Desktop",
+                                "/org/freedesktop/portal/desktop",
+                                "org.freedesktop.portal.Settings",
+                                Glib::RefPtr<Gio::DBus::InterfaceInfo>(), Gio::DBus::PROXY_FLAGS_NONE);
+    
+    
+    Glib::Variant<Glib::ustring> name = Glib::Variant<Glib::ustring>::create(Glib::ustring("org.freedesktop.appearance"));
+    Glib::Variant<Glib::ustring> key = Glib::Variant<Glib::ustring>::create(Glib::ustring("color-scheme"));
+    std::vector<Glib::VariantBase> paramsVector = {name, key};
+    
+    Glib::VariantContainerBase params = Glib::VariantContainerBase::create_tuple(paramsVector);
+    Glib::VariantContainerBase response = prox->call_sync(Glib::ustring("Read"), params);
+    Glib::VariantBase value;
+    response.get_child(value, 0);
+    auto set = Gtk::Settings::get_default();
+    Glib::PropertyProxy<bool> dark = set->property_gtk_application_prefer_dark_theme();
+    if (value.print() == "<<uint32 1>>") {
+        dark = true;
+    } else {
+        dark = false;
+    }
+
+    prox->signal_signal().connect(sigc::ptr_fun(&on_prop_changed));
+
     this->initialize();
+}
+
+void on_prop_changed(const Glib::ustring& sender_name, const Glib::ustring& signal_name, const Glib::VariantContainerBase& parameters) {
+    
+    Glib::VariantBase name;
+    Glib::VariantBase value;
+
+    if (parameters.get_n_children() < 3) {
+        return;
+    }
+
+    parameters.get_child(name, 1);
+    parameters.get_child(value, 2);
+    
+    if (name.print() != "'color-scheme'") {
+        return;
+    }
+    auto set = Gtk::Settings::get_default();
+    Glib::PropertyProxy<bool> dark = set->property_gtk_application_prefer_dark_theme();
+    if (value.print() == "<uint32 1>") {
+        dark = true;
+    } else {
+        dark = false;
+    }
 }
 
 void Container::initialize() {
@@ -71,7 +122,7 @@ void Container::onNotify() {
                 this->mIconView.select_path(this->mTreePopup.getCurrentPath());
                 this->mIconView.scroll_to_path(this->mTreePopup.getCurrentPath(), true, 0.5, 0.5);
             }
-            this->mSettingsWindow->updatePaths(this->mLibraryController.mMediaLibrary->getSearchPaths());
+            this->mSettingsWindow->updatePaths();
             doneNotify = true;
         }
     } else {

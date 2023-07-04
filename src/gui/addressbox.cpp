@@ -15,14 +15,14 @@ mSettingsButton() {
     this->mRefreshButton.set_margin_bottom(1);
     this->mRefreshButton.set_margin_left(1);
     this->mRefreshButton.set_margin_right(1);
-    this->mRefreshButton.set_image(*Gtk::manage(new Gtk::Image(Utils::getIconByName("view-refresh", 16))));
+    this->mRefreshButton.set_image(*Gtk::manage(new Gtk::Image(Utils::getIconByName("view-refresh-symbolic", 16))));
     
     this->mSettingsButton.signal_clicked().connect(sigc::mem_fun(*this, &Addressbox::on_settings_button_click));
     this->mSettingsButton.set_margin_top(1);
     this->mSettingsButton.set_margin_bottom(1);
     this->mSettingsButton.set_margin_left(1);
     this->mSettingsButton.set_margin_right(1);
-    this->mSettingsButton.set_image(*Gtk::manage(new Gtk::Image(Utils::getIconByName("configure", 16))));
+    this->mSettingsButton.set_image(*Gtk::manage(new Gtk::Image(Utils::getIconByName("open-menu-symbolic", 16))));
 
     this->mSortCombo.set_margin_top(1);
     this->mSortCombo.set_margin_bottom(1);
@@ -58,12 +58,12 @@ void Addressbox::initialize(MediaLibrary* mediaLibrary, LibraryController* libra
 void Addressbox::updateProgress(bool status, double progress, std::string stats) {
     if (status == false) {
         if (this->mStatus == true) {
-            this->mRefreshButton.set_image(*Gtk::manage(new Gtk::Image(Utils::getIconByName("view-refresh", 16))));
+            this->mRefreshButton.set_image(*Gtk::manage(new Gtk::Image(Utils::getIconByName("view-refresh-symbolic", 16))));
             this->mStatus = false;
         }
     } else {
         if (this->mStatus == false) {
-            this->mRefreshButton.set_image(*Gtk::manage(new Gtk::Image(Utils::getIconByName("process-stop", 16))));
+            this->mRefreshButton.set_image(*Gtk::manage(new Gtk::Image(Utils::getIconByName("process-stop-symbolic", 16))));
             this->mStatus = true;
         }
     }

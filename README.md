@@ -15,6 +15,8 @@ Second option might work for some, but is really not an option at all for others
 This plugin is based on the Filebrowser Reborn plugin, which has sparked the idea of creating this. Both plugins are currently in development and are developed together with some shared code-base. 
 Media library exists because sometimes you want to browse your albums, group by artists and so on. *I personally use both plugins side by side.* There also might be a situation where your songs are not divided into sane folder structure, making the Filebrowser less user-friendly to use.
 
+This plugin won't miraculously save you if your library is lacking both filesystem (folder) and metadata structure, but it is important to note, that the plugin will try to be smart with what it has. If you lack metadata for some albums, it will try to guess correct structure from folders, or if you lack Album artist metadata in mix albums or compilations, it will try to organize songs by their cover and album name being same (unlike other players where Album artist entry is absolutely necessary for correct organization of files into albums). It is still recommended that you keep your metadata in good state since it's a primary source of information for plugin. Having hundreds of files in the same folder with great metadata won't hurt usability of this plugin, while not having some metadata with perfect folder structure can still hurt your experience.
+
 ## Current stage
 
 Currently works:
@@ -52,7 +54,11 @@ On Arch Linux:
 
 Compile the project:
 
-``` meson build && cd build && ninja ```
+``` meson setup build && cd build && ninja ```
+
+Compile, install, run deadbeef:
+
+``` meson setup build && meson configure build --buildtype debug && cd build && ninja && cd .. && cp ./build/src/libddb_misc_media_library.so ~/.local/lib/deadbeef/ddb_misc_media_library.so && deadbeef ```
 
 Binaries will be located in ./build/src/ folder.
 
